@@ -14,7 +14,258 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          allergies: string[] | null
+          avatar_url: string | null
+          bio: string | null
+          calorie_goal: number | null
+          created_at: string | null
+          diet_type: string | null
+          id: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          avatar_url?: string | null
+          bio?: string | null
+          calorie_goal?: number | null
+          created_at?: string | null
+          diet_type?: string | null
+          id: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          allergies?: string[] | null
+          avatar_url?: string | null
+          bio?: string | null
+          calorie_goal?: number | null
+          created_at?: string | null
+          diet_type?: string | null
+          id?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      recipe_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          recipe_id?: string
+          recipe_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipe_makes: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          recipe_id?: string
+          recipe_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipe_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          recipe_id: string
+          recipe_type: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          recipe_id?: string
+          recipe_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_recipes: {
+        Row: {
+          area: string | null
+          category: string | null
+          created_at: string | null
+          id: string
+          recipe_id: string
+          recipe_image: string | null
+          recipe_name: string
+          user_id: string
+        }
+        Insert: {
+          area?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          recipe_id: string
+          recipe_image?: string | null
+          recipe_name: string
+          user_id: string
+        }
+        Update: {
+          area?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          recipe_id?: string
+          recipe_image?: string | null
+          recipe_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_ingredients: {
+        Row: {
+          added_at: string | null
+          id: string
+          ingredient_name: string
+          quantity: string | null
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          ingredient_name: string
+          quantity?: string | null
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          ingredient_name?: string
+          quantity?: string | null
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_recipes: {
+        Row: {
+          calories: number | null
+          carbs: number | null
+          category: string | null
+          cook_time: number | null
+          cost_per_serving: number | null
+          created_at: string | null
+          cuisine: string | null
+          description: string | null
+          fat: number | null
+          id: string
+          image_url: string | null
+          ingredients: Json
+          instructions: string
+          prep_time: number | null
+          protein: number | null
+          servings: number | null
+          sustainability_score: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          cook_time?: number | null
+          cost_per_serving?: number | null
+          created_at?: string | null
+          cuisine?: string | null
+          description?: string | null
+          fat?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients: Json
+          instructions: string
+          prep_time?: number | null
+          protein?: number | null
+          servings?: number | null
+          sustainability_score?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          cook_time?: number | null
+          cost_per_serving?: number | null
+          created_at?: string | null
+          cuisine?: string | null
+          description?: string | null
+          fat?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string
+          prep_time?: number | null
+          protein?: number | null
+          servings?: number | null
+          sustainability_score?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
