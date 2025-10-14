@@ -1,18 +1,54 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Sparkles, TrendingUp, Clock } from "lucide-react";
+import { ChefHat, Sparkles, TrendingUp, Clock, Heart } from "lucide-react";
 import RecipeCard, { Recipe } from "@/components/RecipeCard";
-import FilterBar from "@/components/FilterBar";
+import AdvancedFilterBar, { FilterOptions } from "@/components/AdvancedFilterBar";
 import RecipeModal from "@/components/RecipeModal";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-food.jpg";
+import { User } from "@supabase/supabase-js";
 
 const Index = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadSavedRecipes();
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadSavedRecipes();
+      } else {
+        setSavedRecipeIds(new Set());
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadSavedRecipes = async () => {
+    const { data } = await supabase
+      .from("saved_recipes")
+      .select("recipe_id");
+    
+    if (data) {
+      setSavedRecipeIds(new Set(data.map(r => r.recipe_id)));
+    }
+  };
 
   const fetchRecipes = async (query: string = "chicken") => {
     setLoading(true);
@@ -79,6 +115,18 @@ const Index = () => {
     }
   };
 
+  const handleFilter = (filters: FilterOptions) => {
+    if (filters.query) {
+      fetchRecipes(filters.query);
+    } else if (filters.category && filters.category !== "all") {
+      fetchByCategory(filters.category);
+    } else if (filters.area && filters.area !== "all") {
+      fetchByArea(filters.area);
+    } else {
+      fetchRecipes();
+    }
+  };
+
   useEffect(() => {
     fetchRecipes();
   }, []);
@@ -97,6 +145,56 @@ const Index = () => {
         description: "Please try again",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleSaveRecipe = async (recipe: Recipe) => {
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to save recipes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const isSaved = savedRecipeIds.has(recipe.idMeal);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_recipes")
+        .delete()
+        .eq("recipe_id", recipe.idMeal)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setSavedRecipeIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(recipe.idMeal);
+          return newSet;
+        });
+        toast({
+          title: "Recipe removed",
+          description: "Recipe removed from your saved list",
+        });
+      }
+    } else {
+      const { error } = await supabase.from("saved_recipes").insert({
+        user_id: user.id,
+        recipe_id: recipe.idMeal,
+        recipe_name: recipe.strMeal,
+        recipe_image: recipe.strMealThumb,
+        category: recipe.strCategory,
+        area: recipe.strArea,
+      });
+
+      if (!error) {
+        setSavedRecipeIds(prev => new Set(prev).add(recipe.idMeal));
+        toast({
+          title: "Recipe saved!",
+          description: "Recipe added to your saved list",
+        });
+      }
     }
   };
 
@@ -159,13 +257,9 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Filter Bar */}
+        {/* Advanced Filter Bar */}
         <div className="mb-8">
-          <FilterBar
-            onSearch={fetchRecipes}
-            onCategoryChange={fetchByCategory}
-            onAreaChange={fetchByArea}
-          />
+          <AdvancedFilterBar onFilter={handleFilter} />
         </div>
 
         {/* Recipes Section */}
@@ -187,11 +281,31 @@ const Index = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
               {recipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.idMeal}
-                  recipe={recipe}
-                  onClick={() => handleRecipeClick(recipe)}
-                />
+                <div key={recipe.idMeal} className="relative group">
+                  {user && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveRecipe(recipe);
+                      }}
+                    >
+                      <Heart
+                        className={`w-5 h-5 ${
+                          savedRecipeIds.has(recipe.idMeal)
+                            ? "fill-primary text-primary"
+                            : ""
+                        }`}
+                      />
+                    </Button>
+                  )}
+                  <RecipeCard
+                    recipe={recipe}
+                    onClick={() => handleRecipeClick(recipe)}
+                  />
+                </div>
               ))}
             </div>
           )}
