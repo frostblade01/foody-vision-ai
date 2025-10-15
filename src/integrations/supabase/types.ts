@@ -50,6 +50,47 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          parent_comment_id: string | null
+          recipe_id: string
+          recipe_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          recipe_id: string
+          recipe_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          recipe_id?: string
+          recipe_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_likes: {
         Row: {
           created_at: string | null
