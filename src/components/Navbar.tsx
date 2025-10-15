@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChefHat, User, Heart, LogOut, Home, Sparkles } from "lucide-react";
+import { ChefHat, User, Heart, LogOut, Home, Sparkles, Plus, Video } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,9 +51,17 @@ const Navbar = () => {
                   <Home className="w-4 h-4 mr-2" />
                   Home
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/reels")}>
+                  <Video className="w-4 h-4 mr-2" />
+                  Reels
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/saved")}>
                   <Heart className="w-4 h-4 mr-2" />
                   Saved
+                </Button>
+                <Button variant="glass" size="sm" onClick={() => navigate("/create-recipe")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create
                 </Button>
                 <Button variant="hero" size="sm" onClick={() => navigate("/ai-kitchen")}>
                   <Sparkles className="w-4 h-4 mr-2" />

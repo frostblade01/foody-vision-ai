@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Image, Lightbulb, Calendar, Loader2 } from "lucide-react";
+import { Sparkles, Image, Lightbulb, Calendar, Loader2, Upload, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { geminiService, DetectedIngredient } from "@/services/geminiService";
 
 const AIKitchen = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [ingredients, setIngredients] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [detectedIngredients, setDetectedIngredients] = useState<DetectedIngredient[]>([]);
+  const [imageLoading, setImageLoading] = useState(false);
   const { toast } = useToast();
 
   const handleAISuggestion = async (type: string) => {
@@ -46,6 +51,49 @@ const AIKitchen = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const detectIngredients = async () => {
+    if (!imageFile) return;
+
+    setImageLoading(true);
+    try {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string;
+        const base64Data = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+
+        const detected = await geminiService.detectIngredientsFromImage(base64Data);
+        setDetectedIngredients(detected);
+        
+        toast({
+          title: "Ingredients detected!",
+          description: `Found ${detected.length} ingredients in your image`,
+        });
+      };
+      reader.readAsDataURL(imageFile);
+    } catch (error) {
+      toast({
+        title: "Error analyzing image",
+        description: "Please try again with a clearer image",
+        variant: "destructive",
+      });
+    } finally {
+      setImageLoading(false);
     }
   };
 
@@ -88,7 +136,7 @@ const AIKitchen = () => {
               </CardHeader>
             </Card>
 
-            <Card className="cursor-pointer hover:scale-105 transition-transform">
+            <Card className="cursor-pointer hover:scale-105 transition-transform" onClick={() => document.getElementById('image-upload')?.click()}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Image className="w-5 h-5 text-primary" />
@@ -100,6 +148,114 @@ const AIKitchen = () => {
               </CardHeader>
             </Card>
           </div>
+
+          {/* Image Upload Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-primary" />
+                Upload Ingredient Photo
+              </CardTitle>
+              <CardDescription>
+                Take a photo of your ingredients and let AI identify them automatically
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                  className="flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Choose Image
+                </Button>
+                {imageFile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview("");
+                      setDetectedIngredients([]);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              
+              {imagePreview && (
+                <div className="space-y-4">
+                  <div className="w-full max-w-md mx-auto">
+                    <img
+                      src={imagePreview}
+                      alt="Uploaded ingredients"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                  
+                  <Button
+                    onClick={detectIngredients}
+                    variant="hero"
+                    className="w-full"
+                    disabled={imageLoading}
+                  >
+                    {imageLoading ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Analyzing Image...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 w-4 h-4" />
+                        Detect Ingredients
+                      </>
+                    )}
+                  </Button>
+                  
+                  {detectedIngredients.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">Detected Ingredients:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {detectedIngredients.map((ingredient, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-sm"
+                          >
+                            <span>{ingredient.name}</span>
+                            {ingredient.quantity && (
+                              <span className="text-muted-foreground">({ingredient.quantity})</span>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {Math.round(ingredient.confidence * 100)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        onClick={() => {
+                          const ingredientNames = detectedIngredients.map(ing => ing.name);
+                          setIngredients(ingredientNames.join(", "));
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Use These Ingredients
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

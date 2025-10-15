@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Sparkles, TrendingUp, Clock, Heart } from "lucide-react";
+import { ChefHat, TrendingUp, Clock, Heart } from "lucide-react";
 import RecipeCard, { Recipe } from "@/components/RecipeCard";
 import AdvancedFilterBar, { FilterOptions } from "@/components/AdvancedFilterBar";
 import RecipeModal from "@/components/RecipeModal";
+import TrendingCarousel from "@/components/TrendingCarousel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-food.jpg";
@@ -53,11 +54,44 @@ const Index = () => {
   const fetchRecipes = async (query: string = "chicken") => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
-      );
-      const data = await response.json();
-      setRecipes(data.meals || []);
+      // Fetch both API recipes and user recipes
+      const [apiResponse, userRecipesResponse] = await Promise.all([
+        fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`),
+        supabase
+          .from("user_recipes")
+          .select("*")
+          .eq("status", "approved")
+          .ilike("title", `%${query}%`)
+      ]);
+
+      const apiData = await apiResponse.json();
+      const apiRecipes = apiData.meals || [];
+      const userRecipes = userRecipesResponse.data || [];
+
+      // Convert user recipes to Recipe format
+      const convertedUserRecipes = userRecipes.map(recipe => ({
+        idMeal: recipe.id,
+        strMeal: recipe.title,
+        strMealThumb: recipe.image_url || "",
+        strCategory: recipe.category || "",
+        strArea: recipe.cuisine || "",
+        strInstructions: recipe.instructions,
+        strTags: recipe.tags?.join(", ") || "",
+        // Add user recipe metadata
+        isUserRecipe: true,
+        calories: recipe.calories,
+        protein: recipe.protein,
+        carbs: recipe.carbs,
+        fat: recipe.fat,
+        costPerServing: recipe.cost_per_serving,
+        sustainabilityScore: recipe.sustainability_score,
+        likeCount: recipe.like_count,
+        viewCount: recipe.view_count
+      }));
+
+      // Combine and shuffle recipes
+      const allRecipes = [...apiRecipes, ...convertedUserRecipes];
+      setRecipes(allRecipes);
     } catch (error) {
       toast({
         title: "Error fetching recipes",
@@ -115,15 +149,155 @@ const Index = () => {
     }
   };
 
-  const handleFilter = (filters: FilterOptions) => {
-    if (filters.query) {
-      fetchRecipes(filters.query);
-    } else if (filters.category && filters.category !== "all") {
-      fetchByCategory(filters.category);
-    } else if (filters.area && filters.area !== "all") {
-      fetchByArea(filters.area);
-    } else {
-      fetchRecipes();
+  const handleFilter = async (filters: FilterOptions) => {
+    setLoading(true);
+    try {
+      let allRecipes: any[] = [];
+
+      // Fetch API recipes
+      if (filters.query) {
+        const apiResponse = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/search.php?s=${filters.query}`
+        );
+        const apiData = await apiResponse.json();
+        allRecipes = [...(apiData.meals || [])];
+      } else if (filters.category && filters.category !== "all") {
+        const apiResponse = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/filter.php?c=${filters.category}`
+        );
+        const apiData = await apiResponse.json();
+        allRecipes = [...(apiData.meals || [])];
+      } else if (filters.area && filters.area !== "all") {
+        const apiResponse = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/filter.php?a=${filters.area}`
+        );
+        const apiData = await apiResponse.json();
+        allRecipes = [...(apiData.meals || [])];
+      } else {
+        const apiResponse = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/search.php?s=chicken`
+        );
+        const apiData = await apiResponse.json();
+        allRecipes = [...(apiData.meals || [])];
+      }
+
+      // Fetch user recipes with filters
+      let userQuery = supabase
+        .from("user_recipes")
+        .select("*")
+        .eq("status", "approved");
+
+      if (filters.query) {
+        userQuery = userQuery.ilike("title", `%${filters.query}%`);
+      }
+      if (filters.category && filters.category !== "all") {
+        userQuery = userQuery.eq("category", filters.category);
+      }
+      if (filters.area && filters.area !== "all") {
+        userQuery = userQuery.eq("cuisine", filters.area);
+      }
+
+      const { data: userRecipes } = await userQuery;
+
+      // Convert user recipes to Recipe format
+      const convertedUserRecipes = (userRecipes || []).map(recipe => ({
+        idMeal: recipe.id,
+        strMeal: recipe.title,
+        strMealThumb: recipe.image_url || "",
+        strCategory: recipe.category || "",
+        strArea: recipe.cuisine || "",
+        strInstructions: recipe.instructions,
+        strTags: recipe.tags?.join(", ") || "",
+        isUserRecipe: true,
+        calories: recipe.calories,
+        protein: recipe.protein,
+        carbs: recipe.carbs,
+        fat: recipe.fat,
+        costPerServing: recipe.cost_per_serving,
+        sustainabilityScore: recipe.sustainability_score,
+        likeCount: recipe.like_count,
+        viewCount: recipe.view_count
+      }));
+
+      // Combine recipes
+      let combinedRecipes = [...allRecipes, ...convertedUserRecipes];
+
+      // Apply client-side filters for nutrition and price
+      if (filters.maxCalories) {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const calories = recipe.calories || recipe.isUserRecipe ? recipe.calories : 400; // Default for API recipes
+          return calories <= filters.maxCalories!;
+        });
+      }
+
+      if (filters.minProtein) {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const protein = recipe.protein || recipe.isUserRecipe ? recipe.protein : 20; // Default for API recipes
+          return protein >= filters.minProtein!;
+        });
+      }
+
+      if (filters.maxCarbs) {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const carbs = recipe.carbs || recipe.isUserRecipe ? recipe.carbs : 30; // Default for API recipes
+          return carbs <= filters.maxCarbs!;
+        });
+      }
+
+      if (filters.maxFat) {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const fat = recipe.fat || recipe.isUserRecipe ? recipe.fat : 15; // Default for API recipes
+          return fat <= filters.maxFat!;
+        });
+      }
+
+      if (filters.maxPrice) {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const price = recipe.costPerServing || recipe.isUserRecipe ? recipe.costPerServing : 8; // Default for API recipes
+          return price <= filters.maxPrice!;
+        });
+      }
+
+      // Apply dietary filters
+      if (filters.dietary && filters.dietary !== "all") {
+        combinedRecipes = combinedRecipes.filter(recipe => {
+          const tags = recipe.strTags?.toLowerCase() || "";
+          const category = recipe.strCategory?.toLowerCase() || "";
+          
+          switch (filters.dietary) {
+            case "gluten-free":
+              return tags.includes("gluten-free") || tags.includes("gluten free");
+            case "dairy-free":
+              return tags.includes("dairy-free") || tags.includes("dairy free");
+            case "nut-free":
+              return tags.includes("nut-free") || tags.includes("nut free");
+            case "low-carb":
+              return tags.includes("low-carb") || tags.includes("keto");
+            case "high-protein":
+              return tags.includes("high-protein") || tags.includes("protein");
+            case "keto":
+              return tags.includes("keto") || tags.includes("keto-friendly");
+            case "paleo":
+              return tags.includes("paleo");
+            case "vegan":
+              return category === "vegan" || tags.includes("vegan");
+            case "vegetarian":
+              return category === "vegetarian" || tags.includes("vegetarian");
+            default:
+              return true;
+          }
+        });
+      }
+
+      setRecipes(combinedRecipes);
+    } catch (error) {
+      toast({
+        title: "Error filtering recipes",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -142,6 +316,54 @@ const Index = () => {
     } catch (error) {
       toast({
         title: "Error loading recipe details",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTrendingRecipeClick = async (recipe: any) => {
+    // Handle trending recipe click - could open modal or navigate
+    try {
+      if (recipe.id.startsWith('demo-')) {
+        // For demo recipes, create a mock recipe object
+        const mockRecipe: Recipe = {
+          idMeal: recipe.id,
+          strMeal: recipe.title,
+          strMealThumb: recipe.image_url,
+          strCategory: recipe.category,
+          strArea: recipe.cuisine,
+          strInstructions: "Demo recipe instructions would go here.",
+          strTags: recipe.category
+        };
+        setSelectedRecipe(mockRecipe);
+        setIsModalOpen(true);
+      } else {
+        // For real user recipes, fetch full details
+        const { data } = await supabase
+          .from("user_recipes")
+          .select("*")
+          .eq("id", recipe.id)
+          .single();
+        
+        if (data) {
+          // Convert user recipe to Recipe format for modal
+          const userRecipe: Recipe = {
+            idMeal: data.id,
+            strMeal: data.title,
+            strMealThumb: data.image_url || "",
+            strCategory: data.category || "",
+            strArea: data.cuisine || "",
+            strInstructions: data.instructions,
+            strTags: data.tags?.join(", ") || ""
+          };
+          setSelectedRecipe(userRecipe);
+          setIsModalOpen(true);
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error loading recipe",
         description: "Please try again",
         variant: "destructive",
       });
@@ -226,12 +448,8 @@ const Index = () => {
 
           <div className="flex flex-wrap gap-4 justify-center pt-4">
             <Button variant="hero" size="lg" className="text-lg px-8">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Get AI Suggestions
-            </Button>
-            <Button variant="glass" size="lg" className="text-lg px-8">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Trending Today
+              <ChefHat className="w-5 h-5 mr-2" />
+              Start Cooking
             </Button>
           </div>
         </div>
@@ -256,6 +474,9 @@ const Index = () => {
             <div className="text-muted-foreground">Quick & Easy</div>
           </div>
         </div>
+
+        {/* Trending Today Section */}
+        <TrendingCarousel onRecipeClick={handleTrendingRecipeClick} />
 
         {/* Advanced Filter Bar */}
         <div className="mb-8">
@@ -325,6 +546,7 @@ const Index = () => {
         recipe={selectedRecipe}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSaveRecipe={handleSaveRecipe}
       />
     </div>
   );

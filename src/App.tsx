@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import SavedRecipes from "./pages/SavedRecipes";
 import AIKitchen from "./pages/AIKitchen";
+import CreateRecipe from "./pages/CreateRecipe";
+import Reels from "./pages/Reels";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/saved" element={<SavedRecipes />} />
           <Route path="/ai-kitchen" element={<AIKitchen />} />
+          <Route path="/create-recipe" element={<CreateRecipe />} />
+          <Route path="/reels" element={<Reels />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
