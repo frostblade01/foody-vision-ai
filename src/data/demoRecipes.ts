@@ -311,3 +311,5 @@ export const getRecipesByCuisine = (cuisine: string): DemoRecipe[] => {
     recipe.cuisine.toLowerCase() === cuisine.toLowerCase()
   );
 };
+
+
