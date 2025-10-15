@@ -89,6 +89,13 @@ export type Database = {
             referencedRelation: "recipe_comments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recipe_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       recipe_likes: {
@@ -250,6 +257,7 @@ export type Database = {
           image_url: string | null
           ingredients: Json
           instructions: string
+          like_count: number | null
           prep_time: number | null
           protein: number | null
           servings: number | null
@@ -258,6 +266,7 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string
+          view_count: number | null
         }
         Insert: {
           calories?: number | null
@@ -273,6 +282,7 @@ export type Database = {
           image_url?: string | null
           ingredients: Json
           instructions: string
+          like_count?: number | null
           prep_time?: number | null
           protein?: number | null
           servings?: number | null
@@ -281,6 +291,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id: string
+          view_count?: number | null
         }
         Update: {
           calories?: number | null
@@ -296,6 +307,7 @@ export type Database = {
           image_url?: string | null
           ingredients?: Json
           instructions?: string
+          like_count?: number | null
           prep_time?: number | null
           protein?: number | null
           servings?: number | null
@@ -304,6 +316,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string
+          view_count?: number | null
         }
         Relationships: []
       }

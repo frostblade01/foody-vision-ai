@@ -294,10 +294,71 @@ const AIKitchen = () => {
               <CardHeader>
                 <CardTitle>AI Suggestions</CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg overflow-auto max-h-96">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
+              <CardContent className="space-y-4">
+                {typeof result === 'string' ? (
+                  <div className="prose prose-sm max-w-none">
+                    <div className="whitespace-pre-wrap text-sm">{result}</div>
+                  </div>
+                ) : result.suggestions ? (
+                  <div className="space-y-3">
+                    {result.suggestions.map((suggestion: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <h4 className="font-semibold mb-2">{suggestion.title || suggestion.name || `Suggestion ${i + 1}`}</h4>
+                        {suggestion.description && <p className="text-sm text-muted-foreground mb-2">{suggestion.description}</p>}
+                        {suggestion.ingredients && (
+                          <div className="mt-2">
+                            <span className="text-xs font-medium">Ingredients: </span>
+                            <span className="text-xs text-muted-foreground">{suggestion.ingredients.join(', ')}</span>
+                          </div>
+                        )}
+                        {suggestion.benefits && <p className="text-xs text-muted-foreground mt-1">✓ {suggestion.benefits}</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : result.meals ? (
+                  <div className="space-y-4">
+                    {Object.entries(result.meals).map(([day, meals]: [string, any], i) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <h4 className="font-semibold mb-3 capitalize">{day}</h4>
+                        <div className="space-y-2">
+                          {Object.entries(meals).map(([meal, details]: [string, any]) => (
+                            <div key={meal} className="pl-3 border-l-2 border-primary/30">
+                              <span className="text-sm font-medium capitalize">{meal}: </span>
+                              <span className="text-sm text-muted-foreground">{typeof details === 'string' ? details : details.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : result.recipes ? (
+                  <div className="space-y-3">
+                    {result.recipes.map((recipe: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <h4 className="font-semibold mb-2">{recipe.name}</h4>
+                        {recipe.description && <p className="text-sm text-muted-foreground mb-2">{recipe.description}</p>}
+                        {recipe.ingredients && (
+                          <div className="mt-2 text-xs">
+                            <span className="font-medium">Ingredients: </span>
+                            <span className="text-muted-foreground">{recipe.ingredients.join(', ')}</span>
+                          </div>
+                        )}
+                        {recipe.instructions && (
+                          <div className="mt-2 text-xs">
+                            <span className="font-medium">Instructions: </span>
+                            <span className="text-muted-foreground">{recipe.instructions}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="prose prose-sm max-w-none">
+                    <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg overflow-auto max-h-96">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

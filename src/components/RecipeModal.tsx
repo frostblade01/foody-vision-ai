@@ -31,7 +31,22 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState<string>(getPersistedCountry() || detectCountryCode());
   const { toast } = useToast();
+  
+  // Derive ingredients list BEFORE conditional rendering
+  const ingredients = useMemo(() => {
+    if (!recipe) return [];
+    return recipe.isUserRecipe 
+      ? (recipe as any).ingredients?.map((ing: any) => `${ing.amount} ${ing.unit} ${ing.name}`) || []
+      : Array.from({ length: 20 }, (_, i) => {
+          const ingredient = (recipe as any)[`strIngredient${i + 1}`];
+          const measure = (recipe as any)[`strMeasure${i + 1}`];
+          return ingredient ? `${measure} ${ingredient}` : null;
+        }).filter(Boolean);
+  }, [recipe]);
+
+  const ingredientList = useMemo(() => ingredients.map((i) => String(i)), [ingredients]);
 
   useEffect(() => {
     checkUser();
@@ -55,7 +70,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
         .select("id")
         .eq("user_id", user.id)
         .eq("recipe_id", recipe.idMeal)
-        .eq("recipe_type", recipe.isUserRecipe ? "user" : "api")
+        .eq("recipe_type", (recipe as any).isUserRecipe ? "user" : "api")
         .maybeSingle();
 
       setIsLiked(!!likeData);
@@ -65,7 +80,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
         .from("recipe_likes")
         .select("*", { count: "exact", head: true })
         .eq("recipe_id", recipe.idMeal)
-        .eq("recipe_type", recipe.isUserRecipe ? "user" : "api");
+        .eq("recipe_type", (recipe as any).isUserRecipe ? "user" : "api");
 
       setLikeCount(count || 0);
     } catch (error) {
@@ -92,7 +107,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           .delete()
           .eq("user_id", user.id)
           .eq("recipe_id", recipe!.idMeal)
-          .eq("recipe_type", recipe!.isUserRecipe ? "user" : "api");
+          .eq("recipe_type", (recipe! as any).isUserRecipe ? "user" : "api");
 
         if (!error) {
           setIsLiked(false);
@@ -105,7 +120,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           .insert({
             user_id: user.id,
             recipe_id: recipe!.idMeal,
-            recipe_type: recipe!.isUserRecipe ? "user" : "api"
+            recipe_type: (recipe! as any).isUserRecipe ? "user" : "api"
           });
 
         if (!error) {
@@ -142,29 +157,16 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
   if (!recipe) return null;
 
-  // Handle ingredients for both API and user recipes
-  const ingredients = recipe.isUserRecipe 
-    ? (recipe as any).ingredients?.map((ing: any) => `${ing.amount} ${ing.unit} ${ing.name}`) || []
-    : Array.from({ length: 20 }, (_, i) => {
-        const ingredient = (recipe as any)[`strIngredient${i + 1}`];
-        const measure = (recipe as any)[`strMeasure${i + 1}`];
-        return ingredient ? `${measure} ${ingredient}` : null;
-      }).filter(Boolean);
-
   // Get nutrition data
   const nutrition = {
-    calories: recipe.calories || (recipe as any).calories || 420,
-    protein: recipe.protein || (recipe as any).protein || 25,
-    carbs: recipe.carbs || (recipe as any).carbs || 35,
-    fat: recipe.fat || (recipe as any).fat || 18,
-    cost: recipe.costPerServing || (recipe as any).costPerServing || 4.99,
-    sustainability: recipe.sustainabilityScore || (recipe as any).sustainabilityScore || 75
+    calories: (recipe as any).calories || 420,
+    protein: (recipe as any).protein || 25,
+    carbs: (recipe as any).carbs || 35,
+    fat: (recipe as any).fat || 18,
+    cost: (recipe as any).cost_per_serving || (recipe as any).costPerServing || 4.99,
+    sustainability: (recipe as any).sustainability_score || (recipe as any).sustainabilityScore || 75
   };
 
-  // Derive ingredients list once
-  const ingredientList = useMemo(() => ingredients.map((i) => String(i)), [recipe]);
-
-  const [country, setCountry] = useState<string>(getPersistedCountry() || detectCountryCode());
   const partner = isNoonCountry(country as any) ? 'Noon' : 'Amazon';
 
   return (
@@ -343,14 +345,14 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             <TabsContent value="comments">
               <RecipeComments 
                 recipeId={recipe.idMeal} 
-                recipeType={recipe.isUserRecipe ? "user" : "api"} 
+                recipeType={(recipe as any).isUserRecipe ? "user" : "api"} 
               />
             </TabsContent>
 
             <TabsContent value="reviews">
               <RecipeReview 
                 recipeId={recipe.idMeal} 
-                recipeType={recipe.isUserRecipe ? "user" : "api"} 
+                recipeType={(recipe as any).isUserRecipe ? "user" : "api"} 
               />
             </TabsContent>
 

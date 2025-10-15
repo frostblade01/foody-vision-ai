@@ -35,11 +35,10 @@ const TrendingCarousel = ({ onRecipeClick }: TrendingCarouselProps) => {
 
   const fetchTrendingRecipes = async () => {
     try {
-      // Fetch approved user recipes sorted by likes and views
+      // Fetch user recipes sorted by likes and views
       const { data: userRecipes, error } = await supabase
         .from("user_recipes")
         .select("*")
-        .eq("status", "approved")
         .order("like_count", { ascending: false })
         .order("view_count", { ascending: false })
         .limit(10);
@@ -125,11 +124,19 @@ const TrendingCarousel = ({ onRecipeClick }: TrendingCarouselProps) => {
   ];
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % recipes.length);
+    if (recipes.length === 0) return;
+    setCurrentIndex((prev) => {
+      const next = prev + 1;
+      return next >= recipes.length ? 0 : next;
+    });
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + recipes.length) % recipes.length);
+    if (recipes.length === 0) return;
+    setCurrentIndex((prev) => {
+      const next = prev - 1;
+      return next < 0 ? recipes.length - 1 : next;
+    });
   };
 
   const handleRecipeClick = (recipe: TrendingRecipe) => {
