@@ -10,6 +10,8 @@ import SavedRecipes from "./pages/SavedRecipes";
 import AIKitchen from "./pages/AIKitchen";
 import CreateRecipe from "./pages/CreateRecipe";
 import Reels from "./pages/Reels";
+import Users from "./pages/Users";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/ai-kitchen" element={<AIKitchen />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />
           <Route path="/reels" element={<Reels />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/users/:username" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

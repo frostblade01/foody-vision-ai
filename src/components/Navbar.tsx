@@ -55,6 +55,10 @@ const Navbar = () => {
                   <Video className="w-4 h-4 mr-2" />
                   Reels
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/users")}>
+                  <User className="w-4 h-4 mr-2" />
+                  Users
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/saved")}>
                   <Heart className="w-4 h-4 mr-2" />
                   Saved

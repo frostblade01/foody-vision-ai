@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, X, Upload, Sparkles, Loader2, ChefHat } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseEnabled } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { geminiService, NutritionAnalysis, SustainabilityScore } from "@/services/geminiService";
 
@@ -170,6 +170,15 @@ const CreateRecipe = () => {
       return;
     }
 
+    if (!supabaseEnabled) {
+      toast({
+        title: "Database unavailable",
+        description: "Supabase is not configured. Please add env keys to enable recipe creation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validation
     if (!formData.title.trim() || !instructions.trim()) {
       toast({
@@ -231,8 +240,7 @@ const CreateRecipe = () => {
         ingredients: validIngredients,
         instructions: instructions,
         tags: formData.tags,
-        sustainability_score: sustainability?.score || null,
-        status: 'pending' // Requires approval
+        sustainability_score: sustainability?.score || null
       };
 
       const { error } = await supabase

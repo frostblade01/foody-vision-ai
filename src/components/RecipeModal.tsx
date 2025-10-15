@@ -15,6 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import RecipeComments from "./RecipeComments";
 import RecipeReview from "./RecipeReview";
+import { useMemo } from "react";
+import { detectCountryCode, getPersistedCountry, persistCountry, isNoonCountry } from "@/lib/location";
+import { buildGroceryUrls } from "@/lib/grocery";
 
 interface RecipeModalProps {
   recipe: Recipe | null;
@@ -158,6 +161,12 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
     sustainability: recipe.sustainabilityScore || (recipe as any).sustainabilityScore || 75
   };
 
+  // Derive ingredients list once
+  const ingredientList = useMemo(() => ingredients.map((i) => String(i)), [recipe]);
+
+  const [country, setCountry] = useState<string>(getPersistedCountry() || detectCountryCode());
+  const partner = isNoonCountry(country as any) ? 'Noon' : 'Amazon';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-border/50">
@@ -188,7 +197,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
           <DialogTitle className="text-3xl font-bold">{recipe.strMeal}</DialogTitle>
           
-          <div className="flex items-center gap-6 py-4 text-sm">
+          <div className="flex items-center gap-6 py-4 text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 fill-primary text-primary" />
               <span className="font-semibold">4.5</span>
@@ -208,6 +217,10 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             <div className="flex items-center gap-2">
               <Heart className="w-5 h-5 text-red-500" />
               <span>{likeCount} likes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <span>Health {Math.min(100, Math.max(0, Math.round(((nutrition.protein || 0) * 2 - (nutrition.fat || 0)) + 50)))}%</span>
             </div>
           </div>
 
@@ -235,11 +248,13 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
         <DialogDescription className="space-y-6 text-foreground">
           <Tabs defaultValue="recipe" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="recipe">Recipe</TabsTrigger>
               <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              <TabsTrigger value="reels">Reels</TabsTrigger>
+              <TabsTrigger value="grocery">Grocery</TabsTrigger>
             </TabsList>
 
             <TabsContent value="recipe" className="space-y-6">
@@ -313,6 +328,16 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                   </div>
                 </div>
               </div>
+
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Popularity
+                </h3>
+                <div className="text-sm text-muted-foreground">
+                  Likes: {likeCount} • Views: {(recipe as any).viewCount || 0}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="comments">
@@ -327,6 +352,64 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                 recipeId={recipe.idMeal} 
                 recipeType={recipe.isUserRecipe ? "user" : "api"} 
               />
+            </TabsContent>
+
+            <TabsContent value="reels" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1,2,3,4].map((i) => (
+                  <div key={i} className="border rounded-lg overflow-hidden">
+                    <div className="aspect-video bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1`}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="p-3 text-sm text-muted-foreground">Uploaded by <span className="font-medium">Chef Demo</span></div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="grocery" className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Select items to order via {partner}. Change country if needed.
+              </div>
+              <div className="flex gap-2 items-center">
+                <label className="text-sm">Country</label>
+                <select
+                  className="border rounded px-2 py-1 bg-background"
+                  value={country}
+                  onChange={(e) => { setCountry(e.target.value); persistCountry(e.target.value as any); }}
+                >
+                  {['AE','SA','EG','JO','BH','OM','KW','US','GB','DE','FR','IN','CA','AU','SG','OTHER'].map((cc) => (
+                    <option key={cc} value={cc}>{cc}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {ingredientList.map((ing, i) => (
+                  <label key={i} className="flex items-center gap-2 p-2 rounded border bg-card/50">
+                    <input type="checkbox" defaultChecked />
+                    <span className="text-sm">{ing}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    const container = document.activeElement?.closest('div');
+                    const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+                    const selected = ingredientList.filter((_, idx) => checkboxes[idx]?.checked);
+                    const urls = buildGroceryUrls(country as any, selected);
+                    urls.slice(0, 5).forEach(u => window.open(u, '_blank'));
+                  }}
+                >
+                  Order Selected
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </DialogDescription>

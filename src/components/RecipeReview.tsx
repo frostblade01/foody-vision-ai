@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MessageSquare } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseEnabled } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 
@@ -48,6 +48,7 @@ const RecipeReview = ({ recipeId, recipeType }: RecipeReviewProps) => {
 
   const fetchReviews = async () => {
     try {
+      if (!supabaseEnabled) return;
       const { data, error } = await supabase
         .from("recipe_reviews")
         .select(`
@@ -104,6 +105,10 @@ const RecipeReview = ({ recipeId, recipeType }: RecipeReviewProps) => {
 
     setLoading(true);
     try {
+      if (!supabaseEnabled) {
+        toast({ title: "Reviews disabled", description: "Database not configured.", variant: "destructive" });
+        return;
+      }
       if (userReview) {
         // Update existing review
         const { error } = await supabase

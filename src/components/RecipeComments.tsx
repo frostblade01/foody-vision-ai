@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageCircle, Send, MoreHorizontal } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseEnabled } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 
@@ -45,6 +45,10 @@ const RecipeComments = ({ recipeId, recipeType }: RecipeCommentsProps) => {
 
   const fetchComments = async () => {
     try {
+      if (!supabaseEnabled) {
+        toast({ title: "Comments disabled", description: "Database not configured.", variant: "destructive" });
+        return;
+      }
       const { data, error } = await supabase
         .from("recipe_comments")
         .select(`
@@ -104,6 +108,10 @@ const RecipeComments = ({ recipeId, recipeType }: RecipeCommentsProps) => {
 
     setLoading(true);
     try {
+      if (!supabaseEnabled) {
+        toast({ title: "Comments disabled", description: "Database not configured.", variant: "destructive" });
+        return;
+      }
       const { error } = await supabase
         .from("recipe_comments")
         .insert({

@@ -125,11 +125,11 @@ const TrendingCarousel = ({ onRecipeClick }: TrendingCarouselProps) => {
   ];
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % Math.max(1, recipes.length - 2));
+    setCurrentIndex((prev) => (prev + 1) % recipes.length);
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + Math.max(1, recipes.length - 2)) % Math.max(1, recipes.length - 2));
+    setCurrentIndex((prev) => (prev - 1 + recipes.length) % recipes.length);
   };
 
   const handleRecipeClick = (recipe: TrendingRecipe) => {

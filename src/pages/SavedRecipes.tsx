@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard, { Recipe } from "@/components/RecipeCard";
+import RecipeModal from "@/components/RecipeModal";
 import { Heart, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,8 @@ interface SavedRecipe {
 const SavedRecipes = () => {
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,9 +54,39 @@ const SavedRecipes = () => {
     setLoading(false);
   };
 
-  const handleRecipeClick = (recipeId: string) => {
-    // Navigate to recipe detail or open modal
-    console.log("Recipe clicked:", recipeId);
+  const handleRecipeClick = async (recipeId: string) => {
+    try {
+      // Attempt TheMealDB first (API recipe)
+      const response = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipeId}`);
+      const data = await response.json();
+      if (data?.meals && data.meals[0]) {
+        setSelectedRecipe(data.meals[0]);
+        setIsModalOpen(true);
+        return;
+      }
+      // Fallback to user_recipes
+      const { data: userRecipe } = await supabase
+        .from("user_recipes")
+        .select("*")
+        .eq("id", recipeId)
+        .maybeSingle();
+      if (userRecipe) {
+        const recipe: Recipe = {
+          idMeal: userRecipe.id,
+          strMeal: userRecipe.title,
+          strMealThumb: userRecipe.image_url || "",
+          strCategory: userRecipe.category || "",
+          strArea: userRecipe.cuisine || "",
+          strInstructions: userRecipe.instructions,
+          strTags: userRecipe.tags?.join(", ") || "",
+        } as any;
+        (recipe as any).isUserRecipe = true;
+        setSelectedRecipe(recipe);
+        setIsModalOpen(true);
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   if (loading) {
@@ -98,6 +131,11 @@ const SavedRecipes = () => {
               ))}
             </div>
           )}
+          <RecipeModal
+            recipe={selectedRecipe}
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
         </div>
       </div>
     </div>

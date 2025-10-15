@@ -74,9 +74,12 @@ const RecipeCard = ({
       </CardContent>
 
       <CardFooter className="px-4 pb-4 pt-0 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">{healthScore}% Healthy</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Health {healthScore}%</span>
+          </div>
+          <div className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">Popularity</div>
         </div>
         <div className="text-sm text-muted-foreground">{calories} cal</div>
       </CardFooter>

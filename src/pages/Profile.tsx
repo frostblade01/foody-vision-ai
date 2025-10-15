@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Loader2, Heart, Users, Star, ChefHat } from "lucide-react";
+import { User, Loader2, Heart, Users, Star, ChefHat, CheckCircle } from "lucide-react";
+import { verifiedUsers } from "@/data/verifiedUsers";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import UserFollowButton from "@/components/UserFollowButton";
@@ -24,6 +25,7 @@ const Profile = () => {
   const [userRecipes, setUserRecipes] = useState<any[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [recipeNames, setRecipeNames] = useState<Record<string, string>>({});
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -97,7 +99,31 @@ const Profile = () => {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      setReviews(userReviews || []);
+      const list = userReviews || [];
+      setReviews(list);
+      // Fetch recipe names for reviews
+      const names: Record<string, string> = {};
+      await Promise.all(
+        list.map(async (r) => {
+          if (r.recipe_id && !names[r.recipe_id]) {
+            try {
+              if (r.recipe_type === 'api') {
+                const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${r.recipe_id}`);
+                const d = await res.json();
+                if (d?.meals?.[0]?.strMeal) names[r.recipe_id] = d.meals[0].strMeal;
+              } else {
+                const { data: ur } = await supabase
+                  .from('user_recipes')
+                  .select('title')
+                  .eq('id', r.recipe_id)
+                  .maybeSingle();
+                if (ur?.title) names[r.recipe_id] = ur.title;
+              }
+            } catch {}
+          }
+        })
+      );
+      setRecipeNames(names);
 
       // Load followers
       const { data: followersData } = await supabase
@@ -354,7 +380,7 @@ const Profile = () => {
                 My Reviews ({reviews.length})
               </h2>
               
-              {reviews.length === 0 ? (
+            {reviews.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-12">
                     <Star className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -362,30 +388,33 @@ const Profile = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <Card key={review.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
-                              }`}
-                            />
-                          ))}
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(review.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        {review.comment && (
-                          <p className="text-sm">{review.comment}</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <Card key={review.id}>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm">{review.comment}</p>
+                      )}
+                      <div className="text-xs text-muted-foreground">
+                        For recipe: <span className="font-medium">{recipeNames[review.recipe_id] || review.recipe_id}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
               )}
             </TabsContent>
 
@@ -463,6 +492,31 @@ const Profile = () => {
                   ))}
                 </div>
               )}
+
+              <div className="space-y-3">
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-primary" /> Verified Accounts
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {verifiedUsers.map((u) => (
+                    <Card key={u.username} className="cursor-pointer">
+                      <CardContent className="p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
+                          <img src={u.avatar} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="font-medium flex items-center gap-1">
+                            {u.displayName}
+                            <span className="text-primary">✓</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">@{u.username}</div>
+                          <div className="text-xs text-muted-foreground mt-1">{u.bio}</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

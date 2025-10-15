@@ -57,12 +57,30 @@ const Reels = () => {
     }
   };
 
-  const getDemoReels = (): Reel[] => [
+  const getDemoReels = (): Reel[] => {
+    const primaryIds = [
+      "4g4R8bJH8dA", // pasta
+      "9bZkp7q19f0", // vegan bowl demo
+      "kXYiU_JCYtU", // eggs
+      "3JZ_D3ELwOQ", // cookies
+      "tVj0ZTS4WF4"  // salmon
+    ];
+    const altIds = [
+      "CevxZvSJLk8",
+      "JGwWNGJdvx8",
+      "60ItHLz5WEA",
+      "OpQFFLBMEPI",
+      "ktvTqknDobU"
+    ];
+    const makeUrl = (id: string) => `https://www.youtube.com/embed/${id}`;
+    return [
     {
       id: "demo-1",
       title: "Quick Pasta Carbonara",
       description: "Learn to make authentic Italian carbonara in just 15 minutes!",
-      video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      video_url: makeUrl(primaryIds[0]),
+      // @ts-ignore
+      alt_video_url: makeUrl(altIds[0]),
       thumbnail_url: "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400",
       recipe_id: "52772",
       recipe_type: "api",
@@ -76,7 +94,9 @@ const Reels = () => {
       id: "demo-2",
       title: "Vegan Buddha Bowl",
       description: "Colorful and nutritious bowl packed with superfoods",
-      video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      video_url: makeUrl(primaryIds[1]),
+      // @ts-ignore
+      alt_video_url: makeUrl(altIds[1]),
       thumbnail_url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
       recipe_id: "demo-1",
       recipe_type: "user",
@@ -90,7 +110,9 @@ const Reels = () => {
       id: "demo-3",
       title: "Perfect Scrambled Eggs",
       description: "The secret to restaurant-quality scrambled eggs",
-      video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      video_url: makeUrl(primaryIds[2]),
+      // @ts-ignore
+      alt_video_url: makeUrl(altIds[2]),
       thumbnail_url: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400",
       recipe_id: "demo-2",
       recipe_type: "user",
@@ -104,7 +126,9 @@ const Reels = () => {
       id: "demo-4",
       title: "Chocolate Chip Cookies",
       description: "Soft and chewy cookies that melt in your mouth",
-      video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      video_url: makeUrl(primaryIds[3]),
+      // @ts-ignore
+      alt_video_url: makeUrl(altIds[3]),
       thumbnail_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400",
       recipe_id: "demo-3",
       recipe_type: "user",
@@ -118,7 +142,9 @@ const Reels = () => {
       id: "demo-5",
       title: "Grilled Salmon",
       description: "Perfectly grilled salmon with herbs and lemon",
-      video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      video_url: makeUrl(primaryIds[4]),
+      // @ts-ignore
+      alt_video_url: makeUrl(altIds[4]),
       thumbnail_url: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400",
       recipe_id: "demo-4",
       recipe_type: "user",
@@ -129,6 +155,7 @@ const Reels = () => {
       like_count: 123
     }
   ];
+  };
 
   const handleLike = async (reelId: string) => {
     try {
@@ -222,6 +249,12 @@ const Reels = () => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isPlaying]);
 
+  // When focusing on a reel, toggle alternate video for variety
+  const [flipAlt, setFlipAlt] = useState(false);
+  useEffect(() => {
+    setFlipAlt(prev => !prev);
+  }, [currentIndex]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -253,7 +286,8 @@ const Reels = () => {
         <div className="flex-1 relative bg-black">
           <div className="absolute inset-0 flex items-center justify-center">
             <iframe
-              src={currentReel.video_url}
+              // @ts-ignore alt field exists for demo reels
+              src={(flipAlt && (currentReel as any).alt_video_url) ? (currentReel as any).alt_video_url : currentReel.video_url}
               className="w-full h-full"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -274,7 +308,9 @@ const Reels = () => {
                 alt={currentReel.creator_name}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-white/90 text-sm">{currentReel.creator_name}</span>
+              <button className="text-white/90 text-sm underline pointer-events-auto" onClick={() => window.location.assign(`/users/${encodeURIComponent(currentReel.creator_name)}`)}>
+                {currentReel.creator_name}
+              </button>
             </div>
           </div>
 

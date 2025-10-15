@@ -280,12 +280,20 @@ const Index = () => {
             case "paleo":
               return tags.includes("paleo");
             case "vegan":
-              return category === "vegan" || tags.includes("vegan");
+              return (category === "vegan" || tags.includes("vegan")) && !["beef","pork","chicken","lamb","seafood","fish"].some(m => category.includes(m));
             case "vegetarian":
-              return category === "vegetarian" || tags.includes("vegetarian");
+              return (category === "vegetarian" || tags.includes("vegetarian")) && !["beef","pork","chicken","lamb","seafood","fish"].some(m => category.includes(m));
             default:
               return true;
           }
+        });
+      }
+
+      // If a meat category explicitly selected, exclude vegetarian/vegan
+      if (filters.category && ["Beef","Pork","Chicken","Lamb","Seafood","Goat"].includes(filters.category)) {
+        combinedRecipes = combinedRecipes.filter(r => {
+          const c = (r.strCategory || "").toLowerCase();
+          return !["vegetarian","vegan"].includes(c);
         });
       }
 
@@ -380,6 +388,13 @@ const Index = () => {
       return;
     }
 
+    // Guard when DB disabled
+    const { VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY } = import.meta.env as any;
+    if (!VITE_SUPABASE_URL || !VITE_SUPABASE_PUBLISHABLE_KEY) {
+      toast({ title: "Database unavailable", description: "Supabase not configured.", variant: "destructive" });
+      return;
+    }
+
     const isSaved = savedRecipeIds.has(recipe.idMeal);
 
     if (isSaved) {
@@ -447,7 +462,7 @@ const Index = () => {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center pt-4">
-            <Button variant="hero" size="lg" className="text-lg px-8">
+            <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => window.location.assign('/auth')}>
               <ChefHat className="w-5 h-5 mr-2" />
               Start Cooking
             </Button>
@@ -479,9 +494,11 @@ const Index = () => {
         <TrendingCarousel onRecipeClick={handleTrendingRecipeClick} />
 
         {/* Advanced Filter Bar */}
-        <div className="mb-8">
-          <AdvancedFilterBar onFilter={handleFilter} />
-        </div>
+        {user ? (
+          <div className="mb-8">
+            <AdvancedFilterBar onFilter={handleFilter} />
+          </div>
+        ) : null}
 
         {/* Recipes Section */}
         <section>
