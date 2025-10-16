@@ -352,20 +352,82 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
               <div className="text-sm text-muted-foreground mb-4">
                 Watch cooking videos and tutorials for this recipe
               </div>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(() => {
-                  // Map recipe names to specific YouTube Shorts IDs
+                  // Comprehensive map of recipe names to YouTube Shorts IDs
                   const recipeShorts: Record<string, string[]> = {
+                    // Original shorts
                     "carbonara": ["zMUNG9KXmrE"],
-                    "pasta": ["zMUNG9KXmrE"],
                     "buddha bowl": ["Oqf3wxJHhUo"],
-                    "vegan": ["Oqf3wxJHhUo"],
                     "scrambled eggs": ["oICDPEXS168"],
-                    "eggs": ["oICDPEXS168"],
                     "chocolate cookies": ["NOjLrN_QktM"],
-                    "cookies": ["NOjLrN_QktM"],
-                    "salmon": ["scfDraXaqb8"],
                     "grilled salmon": ["scfDraXaqb8"],
+                    
+                    // Chicken dishes
+                    "chicken enchilada": ["jz930GvzH5k", "lx0DsMOhhXY", "FMCox4lj_kE", "UhOm0v-zHYU"],
+                    "teriyaki chicken": ["Ml-EhD9AbMk", "suw5gn7kFuI", "JMbEiWeMRZE"],
+                    "mediterranean pasta salad": ["NaSOIw8qm28", "wW6k6STuv5Q", "xCby4BMmCT4", "lJjdaMnVv2M"],
+                    "potato gratin": ["4-lBvQ0yOyU", "o8x3X0LgQCs", "0uLrA8qyA-g", "hxpXjVktaac"],
+                    "chicken handi": ["T4jg8Q-0pb4", "E_QHjm-hdEw", "TaqYPsVz8ZQ", "8Zt6UlGLBBs"],
+                    "chicken alfredo": ["W2X1zPPiqVA", "_gs7c819uG0", "EU3MpMxvH7Y", "tYgl-tjkzi4"],
+                    "tandoori chicken": ["T-G4I_G4EQ0", "MN9BKYDtbr8", "LyPUBn0W4YQ", "JTWlmNJyvkQ"],
+                    "kentucky fried chicken": ["U9UgM0O3u6M", "-sF6Sjpbxf8", "OY-0r0r4NWE", "UIcC4qLGFgM"],
+                    "kfc": ["U9UgM0O3u6M", "-sF6Sjpbxf8", "OY-0r0r4NWE"],
+                    "chicken fajita": ["Bi1Pwt5Zv4I", "bBSn3TW3Vuo", "7alkmKeFc1I", "-lp1ulynHpE"],
+                    "katsu chicken": ["uabDOBfKCuQ", "dslQVahrw3E", "YiHoErYeaVg", "w7rd3FuXfF4"],
+                    "chicken baked tacos": ["WG6z97uN7EM", "3mEhV8dEsxE", "qPS73dZ38Ms", "Lk69BVpbeQI"],
+                    "chicken karaage": ["Ix9nSVvfc8U", "o0hY7_6rIgU", "rtCMw8Xwgsc", "iGdOzXTsrdo"],
+                    "chicken mushroom hotpot": ["bXKWu4GojNI", "KPC0YQP4eAA", "l5eKI5jfclw", "QUjn63kzbeg"],
+                    "chicken couscous": ["T_yA4dv643o", "8ZWfbfoMeSU"],
+                    "chicken ham leek pie": ["8oLl3fB7rL0", "rYOJ-vJiLk4", "TmPGIZaktiI", "JaYwK3aPFoY"],
+                    "chicken marengo": ["Whtd9IRUrnI", "O-hTFeAoZH4", "h7GyFjr2GGQ"],
+                    "chicken basquaise": ["Xw5VadqcWIQ", "1VQMTSZ2Lgw", "kq3AD7NYwgg", "1iox_nZpsZY"],
+                    "jerk chicken": ["v43rlmEbrxE", "WWdyxlVzlko", "n-wxTdmeWVs", "7GpkzfSYrtw"],
+                    "brown stew chicken": ["SDd2SIwQEY8", "QvT91vrXtAk", "N0OLy6ykqH8", "VjfSi1TC_uI"],
+                    "kung pao chicken": ["eHn-ChsjlUc", "xXFOu3CJ0RY", "Bp7QiUsr1Io", "8o07koYoZ2U"],
+                    "general tso": ["MzEELyVOlvk", "rCt1QU6dGJI", "tvQZWl3My-U", "OKXVHeV3850"],
+                    "chicken congee": ["c5h4ByKjIgE", "wchrChGcV0M", "N4YNQrAqf4c", "GEHZW9wSLSQ"],
+                    "chicken quinoa": ["9qSsOpH9hn8", "eulPj8HpaG8"],
+                    "rosol": ["DXbKBtPWN1k", "Gcx8ZuQ-wvs", "aC3qpKYopG8", "lRcBtAxA0qw"],
+                    "piri piri chicken": ["MNsbToXDAnU", "NMjRt2qUhxQ", "yDQtNsODNOg", "zYjFB6T3a7s"],
+                    
+                    // Beef dishes
+                    "beef wellington": ["4Ay5a8uJP3s", "osLX2KqRbbs", "-a2eaIK0Tn8", "vqkKX6RU2og"],
+                    "beef sunday roast": ["MjXXs44I2oE", "Y6LFXzYKo6c", "j_qCkYT5VHw", "SwKoRsUxurQ"],
+                    "braised beef chilli": ["07JsVxTZqZI", "_ZCNIb2I9tk", "FJxXnAWHiqU"],
+                    "massaman beef": ["kVVup8oDSHQ", "UcAX-Ep6sLM", "j0tjWt9thcI", "j17op4Fds88"],
+                    "beef stroganoff": ["0zx4Azmtf_U", "NF3cOo6DdVU", "npauZJFykEs", "uUzd8zqPAec"],
+                    "beef dumpling": ["AOLE6lRVFrs", "HNb71wZsQx0", "LCrVDikV0_c", "stMD7Z3Q1QU"],
+                    "beef mustard pie": ["LrQVdnCYKRg", "R3huvvMuSzE", "JMPD9UmjeVs", "FjGV8BBSYp4"],
+                    "minced beef pie": ["Bc9yPMicc1g", "_a5jV7-XFrw", "SKVjt3LjFW4", "0ds9iedQHTc"],
+                    "beef oyster pie": ["0C9SMRVKVR4"],
+                    "beef bourguignon": ["C4HPRQVQMNs", "7Tu00snhYGQ", "Ov0agc_oJBQ", "H0j1Yl5iqts"],
+                    "jamaican beef patties": ["S9AT7eVbdnw", "A5YQjk-Zyls", "GBDK57b9Srk", "oZB0EhuXM3U"],
+                    "szechuan beef": ["1QWIZ-cjm0E", "z4-x9So5GtY", "oHI81YxbCwI", "uPqpb7K_5aw"],
+                    "beef lo mein": ["9K3p9pkOwLE", "ebhP6me7PGQ", "GsnMyoFVgd8", "9qnBmzvAMRk"],
+                    "beef rendang": ["K4v2Rg2ZTUY", "pb4JKIISdDQ", "Cq6o7kjb8F4", "jKQgeqSH3FA"],
+                    "beef mechado": ["Dnib_BKCI2U", "iv2G1SFGK7I", "LV8ZLfE1XCg", "u2UaIY-rMpU"],
+                    "beef caldereta": ["NMPEmMGrmg4", "vPd4lWerlI4", "HRBZaVUavmU", "NcTboMIjitk"],
+                    "beef asado": ["djPOlvUYgVI", "FTR13GlEwbI", "R9Br6utNJyI", "muG4z9JgxOc"],
+                    "beef banh mi": ["SaBrqH9JWKY", "zbDQtRQWN8g", "wTQ6m7GJZEY"],
+                    "corned beef cabbage": ["VBNtkX_xJTI", "wPKTuTfQlms", "VjUG1nydSRc", "St6-eInpAOw"],
+                    "corned beef hash": ["chXSyqfbYXw", "DnxI0XU-JsM", "g0kElrBHFDU", "zAPzMt9-5hE"],
+                    
+                    // Fish & Seafood
+                    "fish pie": ["M3bf94uAYuk", "WLy_L0FexpY", "qRhk60NUPjo", "btmFYROH9nU"],
+                    "three fish pie": ["fB4K76vWT94", "Ckl7cKdtNO8"],
+                    "cajun fish tacos": ["_B2Kiw2FHLw", "O6b3Ox9iw4Y", "cUIJaMs2860"],
+                    "saltfish ackee": ["UPsSUuMlO8I", "Z_bIw7Padyk", "rn-I4fxSLdA", "_iVburo23eg"],
+                    "escovitch fish": ["fwUVFWiahMA", "KVBgdk4zZwg", "w24vJK8uK24", "lFo5eAD7fo0"],
+                    "salmon avocado": ["3M1ObwGd9js", "Jp_4M-e5NWQ", "vdPo8HcfXIY", "BFB1EqVvXos"],
+                    "portuguese fish stew": ["T9xLmaha0Qs", "MMwrSV6svgU", "OXaRGMd6hjY"],
+                    "fish soup": ["aSGpSuOURsc"],
+                    "recheado masala fish": ["nhu4Ck21EXw", "d0_CxOKQjqA"],
+                    
+                    // Other dishes
+                    "ma po tofu": ["JF_Whk6sgTE", "ogMVh4_LkYQ", "OLXutUOo17g", "j_jQUz6aOkg"],
+                    "potato salad": ["xKi3vG8U51I", "zRzN63rv3ao", "Tjf2LlXwF0U", "8xQ42dRO05U"],
+                    "north african potato": ["7oxlkK1LbAE", "wbzHQhCHyb0", "OGUiyR8TNNM", "SOT_lYpwkKE"],
                   };
                   
                   const recipeName = recipe.strMeal.toLowerCase();
@@ -379,13 +441,13 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                     }
                   }
                   
-                  // If no specific match, show a default reel
+                  // If no specific match, show default
                   if (shortIds.length === 0) {
                     shortIds = ["zMUNG9KXmrE"];
                   }
                   
-                  return shortIds.map((id, i) => (
-                    <div key={i} className="border rounded-lg overflow-hidden">
+                  return shortIds.slice(0, 4).map((id, i) => (
+                    <div key={i} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="aspect-video bg-black">
                         <iframe
                           src={`https://www.youtube.com/embed/${id}?autoplay=0&controls=1&rel=0&modestbranding=1&playsinline=1`}
@@ -396,7 +458,15 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                           loading="lazy"
                         />
                       </div>
-                      <div className="p-3 text-sm text-muted-foreground">Recipe tutorial from YouTube Shorts</div>
+                      <div className="p-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <span className="text-xs font-semibold">YT</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">YouTube Creator</p>
+                          <p className="text-xs text-muted-foreground">Recipe tutorial #{i + 1}</p>
+                        </div>
+                      </div>
                     </div>
                   ));
                 })()}

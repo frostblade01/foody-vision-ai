@@ -63,10 +63,24 @@ const Navbar = () => {
                   <Heart className="w-4 h-4 mr-2" />
                   Saved
                 </Button>
-                <Button variant="glass" size="sm" onClick={() => navigate("/create-recipe")}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="glass" size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate("/create-recipe")}>
+                      <ChefHat className="w-4 h-4 mr-2" />
+                      Create Recipe
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/create-reel")}>
+                      <Video className="w-4 h-4 mr-2" />
+                      Create Reel
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button variant="hero" size="sm" onClick={() => navigate("/ai-kitchen")}>
                   <Sparkles className="w-4 h-4 mr-2" />
                   AI Kitchen

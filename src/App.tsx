@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import SavedRecipes from "./pages/SavedRecipes";
 import AIKitchen from "./pages/AIKitchen";
 import CreateRecipe from "./pages/CreateRecipe";
+import CreateReel from "./pages/CreateReel";
 import Reels from "./pages/Reels";
 import Users from "./pages/Users";
 import UserProfile from "./pages/UserProfile";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/saved" element={<SavedRecipes />} />
           <Route path="/ai-kitchen" element={<AIKitchen />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />
+          <Route path="/create-reel" element={<CreateReel />} />
           <Route path="/reels" element={<Reels />} />
           <Route path="/users" element={<Users />} />
           <Route path="/users/:username" element={<UserProfile />} />
