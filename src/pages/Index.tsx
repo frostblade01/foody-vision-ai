@@ -543,68 +543,72 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Delicious food"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
-        </div>
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 animate-fade-in">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <ChefHat className="w-12 h-12 text-primary animate-glow" />
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-              Foodyfy
-            </h1>
+      {/* Hero Section - Only show when not logged in */}
+      {!user && (
+        <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0">
+            <img
+              src={heroImage}
+              alt="Delicious food"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
           </div>
-          
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover delicious recipes tailored to your taste, health goals, and ingredients.
-            Powered by smart AI recommendations.
-          </p>
 
-          <div className="flex flex-wrap gap-4 justify-center pt-4">
-            <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => window.location.assign('/auth')}>
-              <ChefHat className="w-5 h-5 mr-2" />
-              Start Cooking
-            </Button>
+          <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 animate-fade-in">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <ChefHat className="w-12 h-12 text-primary animate-glow" />
+              <h1 className="text-6xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                Foodyfy
+              </h1>
+            </div>
+            
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover delicious recipes tailored to your taste, health goals, and ingredients.
+              Powered by smart AI recommendations.
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center pt-4">
+              <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => window.location.assign('/auth')}>
+                <ChefHat className="w-5 h-5 mr-2" />
+                Start Cooking
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12">
-        {/* Stats Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
-            <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
-            <div className="text-muted-foreground">Recipes Available</div>
-          </div>
-          <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
-            <div className="text-4xl font-bold text-primary mb-2">50+</div>
-            <div className="text-muted-foreground">Cuisines</div>
-          </div>
-          <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
-            <div className="text-4xl font-bold text-primary mb-2">
-              <Clock className="w-10 h-10 mx-auto text-primary" />
+        {/* Stats Bar - Only show when not logged in */}
+        {!user && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
+              <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
+              <div className="text-muted-foreground">Recipes Available</div>
             </div>
-            <div className="text-muted-foreground">Quick & Easy</div>
+            <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
+              <div className="text-4xl font-bold text-primary mb-2">50+</div>
+              <div className="text-muted-foreground">Cuisines</div>
+            </div>
+            <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-lg p-6 text-center hover:scale-105 transition-transform">
+              <div className="text-4xl font-bold text-primary mb-2">
+                <Clock className="w-10 h-10 mx-auto text-primary" />
+              </div>
+              <div className="text-muted-foreground">Quick & Easy</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Trending Today Section */}
         <TrendingCarousel onRecipeClick={handleTrendingRecipeClick} />
 
         {/* Advanced Filter Bar */}
-        {user ? (
+        {user && (
           <div className="mb-8">
             <AdvancedFilterBar onFilter={handleFilter} />
           </div>
-        ) : null}
+        )}
 
         {/* Recipes Section */}
         <section>
