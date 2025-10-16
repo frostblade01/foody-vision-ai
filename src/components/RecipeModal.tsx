@@ -202,7 +202,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           <div className="flex items-center gap-6 py-4 text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 fill-primary text-primary" />
-              <span className="font-semibold">{(recipe as any).rating ?? 4.5}</span>
+              <span className="font-semibold">{(recipe as any).rating ?? (3.5 + Math.random() * 1.5).toFixed(1)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
@@ -460,10 +460,10 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                       </div>
                       <div className="p-3 flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-xs font-semibold">YT</span>
+                          <span className="text-xs font-semibold">👨‍🍳</span>
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium">YouTube Creator</p>
+                          <p className="text-sm font-medium">Creator</p>
                           <p className="text-xs text-muted-foreground">Recipe tutorial #{i + 1}</p>
                         </div>
                       </div>

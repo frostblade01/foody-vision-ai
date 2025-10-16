@@ -268,11 +268,7 @@ const Reels = () => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isPlaying]);
 
-  // When focusing on a reel, toggle alternate video for variety
-  const [flipAlt, setFlipAlt] = useState(false);
-  useEffect(() => {
-    setFlipAlt(prev => !prev);
-  }, [currentIndex]);
+  // Removed flipAlt toggle - using primary video URLs only
 
   if (loading) {
     return (
@@ -305,8 +301,7 @@ const Reels = () => {
         <div className="flex-1 relative bg-black">
           <div className="absolute inset-0 flex items-center justify-center">
             <iframe
-              // @ts-ignore alt field exists for demo reels
-              src={(flipAlt && (currentReel as any).alt_video_url) ? (currentReel as any).alt_video_url : currentReel.video_url}
+              src={currentReel.video_url}
               className="w-full h-full"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

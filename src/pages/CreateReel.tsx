@@ -138,16 +138,16 @@ const CreateReel = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="videoUrl">YouTube Video URL or ID *</Label>
+                <Label htmlFor="videoUrl">Video URL or Upload Video *</Label>
                 <Input
                   id="videoUrl"
-                  placeholder="e.g., https://www.youtube.com/shorts/zMUNG9KXmrE or zMUNG9KXmrE"
+                  placeholder="e.g., https://www.youtube.com/shorts/zMUNG9KXmrE or video ID"
                   value={formData.videoUrl}
                   onChange={(e) => handleChange("videoUrl", e.target.value)}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Paste the full YouTube Shorts URL or just the video ID
+                  Paste a video URL or upload your own video
                 </p>
               </div>
 
