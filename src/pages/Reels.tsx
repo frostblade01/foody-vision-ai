@@ -398,7 +398,7 @@ const Reels = () => {
           </div>
         </div>
 
-        {/* Bottom Info Bar */
+        {/* Bottom Info Bar */}
         <div className="bg-background/95 backdrop-blur-sm border-t border-border p-4">
           <div className="flex items-center justify-between">
             <Link to={`/users/${slugForUser(currentReel.creator_name)}`} className="flex items-center gap-3">
