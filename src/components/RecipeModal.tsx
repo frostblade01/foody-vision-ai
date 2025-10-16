@@ -8,12 +8,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, DollarSign, Star, Heart, Share2, TrendingUp, MessageCircle, Leaf, Zap } from "lucide-react";
+import { Clock, DollarSign, Star, Heart, Share2, TrendingUp, Leaf, Zap } from "lucide-react";
 import { Recipe } from "./RecipeCard";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import RecipeComments from "./RecipeComments";
 import RecipeReview from "./RecipeReview";
 import { useMemo } from "react";
 import { detectCountryCode, getPersistedCountry, persistCountry, isNoonCountry } from "@/lib/location";
@@ -251,10 +250,9 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
         <DialogDescription className="space-y-6 text-foreground">
           <Tabs defaultValue="recipe" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="recipe">Recipe</TabsTrigger>
               <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-              <TabsTrigger value="comments">Comments</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
               <TabsTrigger value="reels">Reels</TabsTrigger>
               <TabsTrigger value="grocery">Grocery</TabsTrigger>
@@ -341,13 +339,6 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
                   Likes: {likeCount} • Views: {(recipe as any).viewCount || 0}
                 </div>
               </div>
-            </TabsContent>
-
-            <TabsContent value="comments">
-              <RecipeComments 
-                recipeId={recipe.idMeal} 
-                recipeType={((recipe as any).isUserRecipe || (recipe as any).ingredients) ? "user" : "api"} 
-              />
             </TabsContent>
 
             <TabsContent value="reviews">

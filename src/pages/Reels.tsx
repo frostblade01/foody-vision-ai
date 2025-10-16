@@ -58,11 +58,11 @@ const Reels = () => {
   const getDemoReels = (): Reel[] => {
     // Curated food YouTube Shorts IDs that are stable/popular
     const primaryIds = [
-      "zJZ5JpsuS2U", // pasta
-      "H1mSx5b9Rng", // vegan bowl
-      "x8C7I5nC4tM", // eggs
-      "CkW8Ui0GQ1A", // cookies
-      "yP0u7Qk4v1c"  // salmon
+      "zMUNG9KXmrE", // pasta (Quick Pasta Carbonara)
+      "Oqf3wxJHhUo", // vegan bowl (Vegan Buddha Bowl)
+      "oICDPEXS168", // eggs (Scrambled eggs)
+      "NOjLrN_QktM", // cookies (Chocolate cookies)
+      "scfDraXaqb8"  // salmon (Grilled salmon)
     ];
     const altIds = [
       "8S1b8l8c8xA",
