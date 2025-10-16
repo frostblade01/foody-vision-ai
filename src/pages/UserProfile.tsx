@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User as UserIcon, ChefHat, Heart, Star, MessageCircle } from "lucide-react";
+import { User as UserIcon, ChefHat, Heart, Star, MessageCircle, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { verifiedUsers } from "@/data/verifiedUsers";
 
@@ -36,13 +36,24 @@ const UserProfile = () => {
 
   useEffect(() => {
     (async () => {
-      // Load reels authored by this user (match by creator_name for demo, creator_id when available)
+      // Load reels authored by this user from localStorage
       const name = verified?.username || profile?.username;
       if (!name) return;
-      // Commented out until recipe_reels table is created
-      setReels([]);
+      
+      const storedReels = localStorage.getItem('userReels');
+      if (storedReels) {
+        const allReels = JSON.parse(storedReels);
+        // Filter reels by username or userId
+        const userReels = allReels.filter((reel: any) => 
+          reel.creator_name?.toLowerCase() === name.toLowerCase() ||
+          (userId && reel.userId === userId)
+        );
+        setReels(userReels);
+      } else {
+        setReels([]);
+      }
     })();
-  }, [profile?.username, verified?.username]);
+  }, [profile?.username, verified?.username, userId]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -111,21 +122,37 @@ const UserProfile = () => {
             <TabsContent value="reels">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Heart className="w-5 h-5" /> Reels</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Video className="w-5 h-5" /> Reels ({reels.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {reels.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No reels available.</div>
+                    <div className="text-center py-8">
+                      <Video className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">No reels available.</p>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {reels.map((reel) => (
-                        <div key={reel.id} className="border rounded-lg overflow-hidden">
-                          <div className="aspect-[16/9] bg-muted">
-                            <img src={reel.thumbnail_url} alt={reel.title} className="w-full h-full object-cover" />
+                        <div key={reel.id} className="border rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform">
+                          <div className="relative aspect-[9/16] bg-black">
+                            <iframe
+                              src={reel.video_url}
+                              className="w-full h-full"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
                           </div>
                           <div className="p-3">
                             <div className="font-semibold text-sm line-clamp-2">{reel.title}</div>
-                            <div className="text-xs text-muted-foreground mt-1">{reel.view_count} views</div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center gap-1">
+                                <Heart className="w-3 h-3" /> {reel.likes || 0}
+                              </span>
+                              {reel.recipe_name && (
+                                <span>• {reel.recipe_name}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

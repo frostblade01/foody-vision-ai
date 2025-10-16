@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Loader2, Heart, Users, Star, ChefHat, CheckCircle } from "lucide-react";
+import { User, Loader2, Heart, Users, Star, ChefHat, CheckCircle, Video } from "lucide-react";
 import { verifiedUsers } from "@/data/verifiedUsers";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ const Profile = () => {
   const [userRecipes, setUserRecipes] = useState<any[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [userReels, setUserReels] = useState<any[]>([]);
   const [recipeNames, setRecipeNames] = useState<Record<string, string>>({});
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
@@ -129,6 +130,15 @@ const Profile = () => {
       setFollowers([]);
       // Load following (commented out until user_follows table is created)
       setFollowing([]);
+
+      // Load user's reels from localStorage
+      const storedReels = localStorage.getItem('userReels');
+      if (storedReels) {
+        const allReels = JSON.parse(storedReels);
+        // Filter reels created by this user
+        const myReels = allReels.filter((reel: any) => reel.userId === session.user.id);
+        setUserReels(myReels);
+      }
     } catch (error) {
       console.error("Error loading user data:", error);
     }
@@ -186,9 +196,10 @@ const Profile = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="recipes">My Recipes</TabsTrigger>
+              <TabsTrigger value="recipes">Recipes</TabsTrigger>
+              <TabsTrigger value="reels">Reels</TabsTrigger>
               <TabsTrigger value="saved">Saved</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
               <TabsTrigger value="followers">Followers</TabsTrigger>
@@ -313,6 +324,55 @@ const Profile = () => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>{recipe.like_count} likes</span>
                           <span>{recipe.view_count} views</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="reels" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Video className="w-6 h-6 text-primary" />
+                  My Reels ({userReels.length})
+                </h2>
+                <Button onClick={() => navigate("/create-reel")} variant="hero">
+                  <Video className="w-4 h-4 mr-2" />
+                  Create Reel
+                </Button>
+              </div>
+              
+              {userReels.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Video className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No reels yet. Create your first reel!</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {userReels.map((reel) => (
+                    <Card key={reel.id} className="cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate("/reels")}>
+                      <div className="relative aspect-[9/16] overflow-hidden bg-black">
+                        <iframe
+                          src={reel.video_url}
+                          className="w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold mb-2 line-clamp-2">{reel.title}</h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Heart className="w-4 h-4" /> {reel.likes || 0}
+                          </span>
+                          {reel.recipe_name && (
+                            <span className="text-xs">{reel.recipe_name}</span>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
