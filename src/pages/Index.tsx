@@ -19,8 +19,19 @@ const Index = () => {
   const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  // Compute consistent metrics from recipe title (keyword-based heuristic)
-  const computeMetricsFromTitle = (title: string) => {
+  // Generate consistent random values using hash function
+  const generateHashValue = (seed: string, min: number, max: number) => {
+    let hash = 5381;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash * 33) ^ seed.charCodeAt(i);
+    }
+    hash = hash >>> 0;
+    const normalized = hash / 4294967295;
+    return min + (normalized * (max - min));
+  };
+
+  // Compute consistent metrics from recipe title with randomization per recipe
+  const computeMetricsFromTitle = (title: string, recipeId?: string) => {
     const t = (title || '').toLowerCase();
     const isDessert = /cookie|cake|brownie|dessert|pie|ice cream|sweet/.test(t);
     const isFried = /fried|karaage|tempura|deep|crispy/.test(t);
@@ -36,11 +47,14 @@ const Index = () => {
     const carbs = isDessert ? 60 : isSaladOrBowl ? 35 : isVegan ? 38 : isFried ? 30 : 28;
     const cost = isSeafood ? 11.5 : isBeef ? 9.5 : isChicken ? 6.5 : isVegan ? 5.0 : isDessert ? 4.0 : 7.0;
     const prep = isDessert ? 45 : isFried ? 35 : isChicken ? 30 : isSeafood ? 20 : isVegan ? 25 : isSaladOrBowl ? 20 : 30;
-    const health = Math.max(50, Math.min(95, Math.round((protein * 2 - fat + (isVegan || isSaladOrBowl ? 10 : 0) - (isDessert ? 15 : 0)) + 60)));
     const sustainability = Math.max(50, Math.min(95,
       (isVegan || isSaladOrBowl) ? 90 : isSeafood ? 75 : isChicken ? 70 : isBeef ? 55 : isDessert ? 65 : 72
     ));
-    const rating = (4.1 + (health - 50) / 100).toFixed(1);
+
+    // Use hash-based randomization for rating and health score
+    const seed = `${recipeId || ''}_${title}`;
+    const rating = Number(generateHashValue(`rating_${seed}`, 3.5, 5.0).toFixed(1));
+    const health = Math.round(generateHashValue(`health_${seed}`, 45, 98));
 
     return {
       calories: baseCalories,
@@ -51,7 +65,7 @@ const Index = () => {
       prepTime: prep,
       healthScore: health,
       sustainabilityScore: sustainability,
-      rating: Number(rating),
+      rating: rating,
     };
   };
 
@@ -131,7 +145,7 @@ const Index = () => {
         // Add user recipe metadata
         isUserRecipe: true,
         ...(() => {
-          const m = computeMetricsFromTitle(recipe.title || "");
+          const m = computeMetricsFromTitle(recipe.title || "", recipe.id);
           return {
             calories: recipe.calories ?? m.calories,
             protein: recipe.protein ?? m.protein,
@@ -150,7 +164,7 @@ const Index = () => {
 
       // Convert API recipes and attach computed metrics for consistency
       const convertedApiRecipes = (apiRecipes || []).map((r: any) => {
-        const m = computeMetricsFromTitle(r.strMeal);
+        const m = computeMetricsFromTitle(r.strMeal, r.idMeal);
         return {
           ...r,
           calories: m.calories,
@@ -280,7 +294,7 @@ const Index = () => {
       // Attach computed metrics to API recipes for consistency
       const convertedApi = (allRecipes || []).map((r: any) => ({
         ...r,
-        ...computeMetricsFromTitle(r.strMeal),
+        ...computeMetricsFromTitle(r.strMeal, r.idMeal),
       }));
 
       // Combine recipes
@@ -388,7 +402,7 @@ const Index = () => {
   const handleRecipeClick = async (recipe: Recipe) => {
     try {
       // Create enriched recipe object using existing data and computed metrics
-      const m = computeMetricsFromTitle(recipe.strMeal);
+      const m = computeMetricsFromTitle(recipe.strMeal, recipe.idMeal);
       const enriched: any = {
         ...recipe,
         calories: (recipe as any).calories ?? m.calories,
@@ -612,7 +626,7 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
               {recipes.map((recipe, idx) => {
                 // Deterministic per-card metrics so featured tiles aren't identical
-                const m = computeMetricsFromTitle(recipe.strMeal);
+                const m = computeMetricsFromTitle(recipe.strMeal, recipe.idMeal);
                 const rating = m.rating.toFixed(1);
                 const prepTime = m.prepTime;
                 const calories = m.calories;
