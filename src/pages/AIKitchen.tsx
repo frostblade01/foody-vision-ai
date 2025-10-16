@@ -16,6 +16,19 @@ const AIKitchen = () => {
   const [imageLoading, setImageLoading] = useState(false);
   const { toast } = useToast();
 
+  const stripCodeFences = (text: string): string => {
+    // remove ```json ... ``` or ``` ... ``` wrappers
+    return text.replace(/^```[a-zA-Z]*\n?/,'').replace(/\n?```$/,'');
+  };
+
+  const tryParseJson = (text: string): any | null => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
+
   const handleAISuggestion = async (type: string) => {
     setLoading(true);
     setResult(null);
@@ -42,7 +55,18 @@ const AIKitchen = () => {
       );
 
       const data = await response.json();
-      setResult(data);
+      // Normalize: if AI returned markdown fenced JSON inside text, extract & parse
+      if (typeof data === 'string') {
+        const cleaned = stripCodeFences(data);
+        const parsed = tryParseJson(cleaned);
+        setResult(parsed || cleaned);
+      } else if (data && typeof data.text === 'string') {
+        const cleaned = stripCodeFences(data.text);
+        const parsed = tryParseJson(cleaned);
+        setResult(parsed || cleaned);
+      } else {
+        setResult(data);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -299,6 +323,23 @@ const AIKitchen = () => {
                   <div className="prose prose-sm max-w-none">
                     <div className="whitespace-pre-wrap text-sm">{result}</div>
                   </div>
+                ) : result.recipes ? (
+                  <div className="space-y-3">
+                    {result.recipes.map((recipe: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <h4 className="font-semibold mb-2">{recipe.name}</h4>
+                        {recipe.mainIngredients && (
+                          <div className="mt-1 text-xs text-muted-foreground">Main: {recipe.mainIngredients.join(', ')}</div>
+                        )}
+                        {recipe.missingIngredients && (
+                          <div className="mt-1 text-xs text-muted-foreground">Missing: {recipe.missingIngredients.join(', ')}</div>
+                        )}
+                        {recipe.difficulty && (
+                          <div className="mt-1 text-xs text-muted-foreground capitalize">Difficulty: {recipe.difficulty}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 ) : result.suggestions ? (
                   <div className="space-y-3">
                     {result.suggestions.map((suggestion: any, i: number) => (
@@ -380,10 +421,25 @@ const AIKitchen = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg overflow-auto max-h-96">
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
+                  <div className="space-y-3">
+                    {/* Robust fallback renderer for unknown shapes */}
+                    {Array.isArray(result) ? (
+                      <ul className="list-disc pl-6 text-sm text-muted-foreground">
+                        {result.map((item: any, i: number) => (
+                          <li key={i}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
+                        ))}
+                      </ul>
+                    ) : result.text ? (
+                      <div className="prose prose-sm max-w-none">
+                        <div className="whitespace-pre-wrap text-sm">{String(result.text)}</div>
+                      </div>
+                    ) : (
+                      <div className="prose prose-sm max-w-none">
+                        <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg overflow-auto max-h-96">
+                          {JSON.stringify(result, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

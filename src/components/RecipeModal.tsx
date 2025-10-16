@@ -160,12 +160,12 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
   // Get nutrition data
   const nutrition = {
-    calories: (recipe as any).calories || 420,
-    protein: (recipe as any).protein || 25,
-    carbs: (recipe as any).carbs || 35,
-    fat: (recipe as any).fat || 18,
-    cost: (recipe as any).cost_per_serving || (recipe as any).costPerServing || 4.99,
-    sustainability: (recipe as any).sustainability_score || (recipe as any).sustainabilityScore || 75
+    calories: (recipe as any).calories ?? 420,
+    protein: (recipe as any).protein ?? 25,
+    carbs: (recipe as any).carbs ?? 35,
+    fat: (recipe as any).fat ?? 18,
+    cost: (recipe as any).cost_per_serving ?? (recipe as any).costPerServing ?? 4.99,
+    sustainability: (recipe as any).sustainability_score ?? (recipe as any).sustainabilityScore ?? 75
   };
 
   const partner = isNoonCountry(country as any) ? 'Noon' : 'Amazon';
@@ -203,15 +203,15 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           <div className="flex items-center gap-6 py-4 text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 fill-primary text-primary" />
-              <span className="font-semibold">4.5</span>
+              <span className="font-semibold">{(recipe as any).rating ?? 4.5}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
-              <span>30 min</span>
+              <span>{(recipe as any).prepTime ?? 30} min</span>
             </div>
             <div className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-muted-foreground" />
-              <span>${nutrition.cost}</span>
+              <span>{nutrition.cost}</span>
             </div>
             <div className="flex items-center gap-2">
               <Leaf className="w-5 h-5 text-green-500" />

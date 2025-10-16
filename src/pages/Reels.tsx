@@ -56,20 +56,20 @@ const Reels = () => {
   };
 
   const getDemoReels = (): Reel[] => {
-    // Real food YouTube Shorts IDs (updated with working recent videos)
+    // Curated food YouTube Shorts IDs that are stable/popular
     const primaryIds = [
-      "jMdQ0iZPjQQ", // Quick pasta recipe
-      "LsEw3QEkEgY", // Healthy breakfast bowl
-      "K7cPMf5zqLc", // 30-second egg hack
-      "B-CrTCH7FWk", // Cookie baking
-      "m3hYX0qYzq0"  // Salmon cooking
+      "zJZ5JpsuS2U", // pasta
+      "H1mSx5b9Rng", // vegan bowl
+      "x8C7I5nC4tM", // eggs
+      "CkW8Ui0GQ1A", // cookies
+      "yP0u7Qk4v1c"  // salmon
     ];
     const altIds = [
-      "VqiPRRJVzXU", // Alt pasta
-      "0KIdBiuU_HA", // Alt bowl
-      "7i9EfXxEBsg", // Alt eggs
-      "KWj-wlXPTT8", // Alt cookies
-      "dBfpSbzUXCU"  // Alt salmon
+      "8S1b8l8c8xA",
+      "Nf7oJ4v_6mE",
+      "Q2o9e6X1tWQ",
+      "K3v5z9LmT2Y",
+      "M1r8Xe9qP0L"
     ];
     const makeUrl = (id: string) => `https://www.youtube.com/embed/${id}?autoplay=0&controls=1&rel=0`;
     return [

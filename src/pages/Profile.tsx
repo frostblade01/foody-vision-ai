@@ -128,9 +128,7 @@ const Profile = () => {
       // Load followers (commented out until user_follows table is created)
       setFollowers([]);
       // Load following (commented out until user_follows table is created)
-        .eq("follower_id", session.user.id);
-
-      setFollowing(followingData || []);
+      setFollowing([]);
     } catch (error) {
       console.error("Error loading user data:", error);
     }

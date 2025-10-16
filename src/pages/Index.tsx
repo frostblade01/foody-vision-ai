@@ -19,6 +19,42 @@ const Index = () => {
   const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
+  // Compute consistent metrics from recipe title (keyword-based heuristic)
+  const computeMetricsFromTitle = (title: string) => {
+    const t = (title || '').toLowerCase();
+    const isDessert = /cookie|cake|brownie|dessert|pie|ice cream|sweet/.test(t);
+    const isFried = /fried|karaage|tempura|deep|crispy/.test(t);
+    const isSeafood = /salmon|tuna|shrimp|prawn|fish|seafood/.test(t);
+    const isVegan = /vegan|buddha|tofu|plant/.test(t);
+    const isChicken = /chicken/.test(t);
+    const isBeef = /beef|steak|burger/.test(t);
+    const isSaladOrBowl = /salad|bowl|quinoa|grain/.test(t);
+
+    const baseCalories = isDessert ? 520 : isFried ? 480 : isBeef ? 520 : isChicken ? 430 : isSeafood ? 360 : isVegan ? 340 : isSaladOrBowl ? 320 : 400;
+    const protein = isBeef ? 32 : isChicken ? 30 : isSeafood ? 28 : isVegan ? 18 : isDessert ? 5 : 22;
+    const fat = isDessert ? 24 : isFried ? 22 : isBeef ? 20 : isChicken ? 16 : isSeafood ? 12 : isVegan ? 10 : 14;
+    const carbs = isDessert ? 60 : isSaladOrBowl ? 35 : isVegan ? 38 : isFried ? 30 : 28;
+    const cost = isSeafood ? 11.5 : isBeef ? 9.5 : isChicken ? 6.5 : isVegan ? 5.0 : isDessert ? 4.0 : 7.0;
+    const prep = isDessert ? 45 : isFried ? 35 : isChicken ? 30 : isSeafood ? 20 : isVegan ? 25 : isSaladOrBowl ? 20 : 30;
+    const health = Math.max(50, Math.min(95, Math.round((protein * 2 - fat + (isVegan || isSaladOrBowl ? 10 : 0) - (isDessert ? 15 : 0)) + 60)));
+    const sustainability = Math.max(50, Math.min(95,
+      (isVegan || isSaladOrBowl) ? 90 : isSeafood ? 75 : isChicken ? 70 : isBeef ? 55 : isDessert ? 65 : 72
+    ));
+    const rating = (4.1 + (health - 50) / 100).toFixed(1);
+
+    return {
+      calories: baseCalories,
+      protein,
+      carbs,
+      fat,
+      costPerServing: Number(cost.toFixed(2)),
+      prepTime: prep,
+      healthScore: health,
+      sustainabilityScore: sustainability,
+      rating: Number(rating),
+    };
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -51,24 +87,39 @@ const Index = () => {
     }
   };
 
-  const fetchRecipes = async (query: string = "chicken") => {
+  const fetchDefaultRecipes = async () => {
+    // Mix of broad queries to avoid only "chicken"
+    const queries = ["chicken", "beef", "salad", "pasta", "rice", "tofu", "fish"];
+    const responses = await Promise.all(
+      queries.map(q => fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${q}`))
+    );
+    const datas = await Promise.all(responses.map(r => r.json()));
+    const meals = datas.flatMap(d => d.meals || []);
+    // De-duplicate by idMeal
+    const map: Record<string, any> = {};
+    meals.forEach(m => { if (m?.idMeal) map[m.idMeal] = m; });
+    return Object.values(map);
+  };
+
+  const fetchRecipes = async (query: string = "") => {
     setLoading(true);
     try {
       // Fetch both API recipes and user recipes
-      const [apiResponse, userRecipesResponse] = await Promise.all([
-        fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`),
+      const [apiMeals, userRecipesResponse] = await Promise.all([
+        query
+          ? fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`).then(r => r.json()).then(d => d.meals || [])
+          : fetchDefaultRecipes(),
         supabase
           .from("user_recipes")
           .select("*")
           .eq("status", "approved")
-          .ilike("title", `%${query}%`)
+          .ilike("title", `%${query || ''}%`)
       ]);
 
-      const apiData = await apiResponse.json();
-      const apiRecipes = apiData.meals || [];
+      const apiRecipes = apiMeals || [];
       const userRecipes = userRecipesResponse.data || [];
 
-      // Convert user recipes to Recipe format
+      // Convert user recipes to Recipe format (use DB nutrition, fallback to title-derived)
       const convertedUserRecipes = userRecipes.map(recipe => ({
         idMeal: recipe.id,
         strMeal: recipe.title,
@@ -79,18 +130,43 @@ const Index = () => {
         strTags: recipe.tags?.join(", ") || "",
         // Add user recipe metadata
         isUserRecipe: true,
-        calories: recipe.calories,
-        protein: recipe.protein,
-        carbs: recipe.carbs,
-        fat: recipe.fat,
-        costPerServing: recipe.cost_per_serving,
-        sustainabilityScore: recipe.sustainability_score,
+        ...(() => {
+          const m = computeMetricsFromTitle(recipe.title || "");
+          return {
+            calories: recipe.calories ?? m.calories,
+            protein: recipe.protein ?? m.protein,
+            carbs: recipe.carbs ?? m.carbs,
+            fat: recipe.fat ?? m.fat,
+            costPerServing: recipe.cost_per_serving ?? m.costPerServing,
+            sustainabilityScore: recipe.sustainability_score ?? m.sustainabilityScore,
+            rating: m.rating,
+            prepTime: m.prepTime,
+            healthScore: m.healthScore,
+          };
+        })(),
         likeCount: recipe.like_count,
         viewCount: recipe.view_count
       }));
 
-      // Combine and shuffle recipes
-      const allRecipes = [...apiRecipes, ...convertedUserRecipes];
+      // Convert API recipes and attach computed metrics for consistency
+      const convertedApiRecipes = (apiRecipes || []).map((r: any) => {
+        const m = computeMetricsFromTitle(r.strMeal);
+        return {
+          ...r,
+          calories: m.calories,
+          protein: m.protein,
+          carbs: m.carbs,
+          fat: m.fat,
+          costPerServing: m.costPerServing,
+          sustainabilityScore: m.sustainabilityScore,
+          rating: m.rating,
+          prepTime: m.prepTime,
+          healthScore: m.healthScore,
+        };
+      });
+
+      // Combine
+      const allRecipes = [...convertedApiRecipes, ...convertedUserRecipes];
       setRecipes(allRecipes);
     } catch (error) {
       toast({
@@ -154,31 +230,13 @@ const Index = () => {
     try {
       let allRecipes: any[] = [];
 
-      // Fetch API recipes
+      // Fetch API recipes broadly by query or defaults
       if (filters.query) {
-        const apiResponse = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/search.php?s=${filters.query}`
-        );
-        const apiData = await apiResponse.json();
-        allRecipes = [...(apiData.meals || [])];
-      } else if (filters.category && filters.category !== "all") {
-        const apiResponse = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/filter.php?c=${filters.category}`
-        );
-        const apiData = await apiResponse.json();
-        allRecipes = [...(apiData.meals || [])];
-      } else if (filters.area && filters.area !== "all") {
-        const apiResponse = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/filter.php?a=${filters.area}`
-        );
+        const apiResponse = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${filters.query}`);
         const apiData = await apiResponse.json();
         allRecipes = [...(apiData.meals || [])];
       } else {
-        const apiResponse = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/search.php?s=chicken`
-        );
-        const apiData = await apiResponse.json();
-        allRecipes = [...(apiData.meals || [])];
+        allRecipes = await fetchDefaultRecipes();
       }
 
       // Fetch user recipes with filters
@@ -219,8 +277,14 @@ const Index = () => {
         viewCount: recipe.view_count
       }));
 
+      // Attach computed metrics to API recipes for consistency
+      const convertedApi = (allRecipes || []).map((r: any) => ({
+        ...r,
+        ...computeMetricsFromTitle(r.strMeal),
+      }));
+
       // Combine recipes
-      let combinedRecipes = [...allRecipes, ...convertedUserRecipes];
+      let combinedRecipes = [...convertedApi, ...convertedUserRecipes];
 
       // Apply client-side filters for nutrition and price
       if (filters.maxCalories) {
@@ -256,6 +320,14 @@ const Index = () => {
           const price = recipe.costPerServing || recipe.isUserRecipe ? recipe.costPerServing : 8; // Default for API recipes
           return price <= filters.maxPrice!;
         });
+      }
+
+      // Apply category/area filters strictly when provided
+      if (filters.category && filters.category !== "all") {
+        combinedRecipes = combinedRecipes.filter(r => (r.strCategory || '').toLowerCase() === filters.category.toLowerCase());
+      }
+      if (filters.area && filters.area !== "all") {
+        combinedRecipes = combinedRecipes.filter(r => (r.strArea || '').toLowerCase() === filters.area.toLowerCase());
       }
 
       // Apply dietary filters
@@ -315,11 +387,31 @@ const Index = () => {
 
   const handleRecipeClick = async (recipe: Recipe) => {
     try {
-      const response = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipe.idMeal}`
-      );
-      const data = await response.json();
-      setSelectedRecipe(data.meals[0]);
+      // Create enriched recipe object using existing data and computed metrics
+      const m = computeMetricsFromTitle(recipe.strMeal);
+      const enriched: any = {
+        ...recipe,
+        calories: (recipe as any).calories ?? m.calories,
+        protein: (recipe as any).protein ?? m.protein,
+        carbs: (recipe as any).carbs ?? m.carbs,
+        fat: (recipe as any).fat ?? m.fat,
+        costPerServing: (recipe as any).costPerServing ?? m.costPerServing,
+        sustainabilityScore: (recipe as any).sustainabilityScore ?? m.sustainabilityScore,
+        rating: (recipe as any).rating ?? m.rating,
+        prepTime: (recipe as any).prepTime ?? m.prepTime,
+        healthScore: (recipe as any).healthScore ?? m.healthScore,
+      };
+
+      // For API recipes, fetch full details for instructions/ingredients only
+      if (!(recipe as any).isUserRecipe && !(recipe as any).ingredients) {
+        const response = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipe.idMeal}`
+        );
+        const data = await response.json();
+        setSelectedRecipe({ ...data.meals[0], ...enriched } as any);
+      } else {
+        setSelectedRecipe(enriched);
+      }
       setIsModalOpen(true);
     } catch (error) {
       toast({
@@ -518,7 +610,15 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
-              {recipes.map((recipe) => (
+              {recipes.map((recipe, idx) => {
+                // Deterministic per-card metrics so featured tiles aren't identical
+                const m = computeMetricsFromTitle(recipe.strMeal);
+                const rating = m.rating.toFixed(1);
+                const prepTime = m.prepTime;
+                const calories = m.calories;
+                const cost = m.costPerServing.toFixed(2);
+                const health = m.healthScore;
+                return (
                 <div key={recipe.idMeal} className="relative group">
                   {user && (
                     <Button
@@ -541,10 +641,15 @@ const Index = () => {
                   )}
                   <RecipeCard
                     recipe={recipe}
+                    rating={Number(rating)}
+                    prepTime={prepTime}
+                    calories={calories}
+                    costPerPortion={Number(cost)}
+                    healthScore={health}
                     onClick={() => handleRecipeClick(recipe)}
                   />
                 </div>
-              ))}
+              );})}
             </div>
           )}
 
