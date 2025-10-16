@@ -157,6 +157,20 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
   if (!recipe) return null;
 
+  // Generate consistent random values based on recipe ID
+  const generateConsistentValue = (id: string, min: number, max: number) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = hash & hash;
+    }
+    const normalized = Math.abs(hash % 1000) / 1000;
+    return min + normalized * (max - min);
+  };
+
+  const rating = (recipe as any).rating ?? parseFloat(generateConsistentValue(recipe.idMeal, 3.5, 5.0).toFixed(1));
+  const healthScore = (recipe as any).healthScore ?? Math.round(generateConsistentValue(recipe.idMeal + recipe.strMeal, 45, 98));
+
   // Get nutrition data
   const nutrition = {
     calories: (recipe as any).calories ?? 420,
@@ -202,7 +216,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           <div className="flex items-center gap-6 py-4 text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 fill-primary text-primary" />
-              <span className="font-semibold">{(recipe as any).rating ?? (3.5 + Math.random() * 1.5).toFixed(1)}</span>
+              <span className="font-semibold">{rating}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
@@ -222,7 +236,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             </div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <span>Health {Math.min(100, Math.max(0, Math.round(((nutrition.protein || 0) * 2 - (nutrition.fat || 0)) + 50)))}%</span>
+              <span>Health {healthScore}%</span>
             </div>
           </div>
 

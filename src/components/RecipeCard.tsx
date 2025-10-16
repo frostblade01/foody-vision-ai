@@ -27,10 +27,24 @@ const RecipeCard = ({
   calories = 420,
   costPerPortion = 4.99,
   prepTime = 30,
-  rating = 4.5,
-  healthScore = 85,
+  rating,
+  healthScore,
   onClick,
 }: RecipeCardProps) => {
+  // Generate consistent random values based on recipe ID (same logic as RecipeModal)
+  const generateConsistentValue = (id: string, min: number, max: number) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = hash & hash;
+    }
+    const normalized = Math.abs(hash % 1000) / 1000;
+    return min + normalized * (max - min);
+  };
+
+  const finalRating = rating ?? parseFloat(generateConsistentValue(recipe.idMeal, 3.5, 5.0).toFixed(1));
+  const finalHealthScore = healthScore ?? Math.round(generateConsistentValue(recipe.idMeal + recipe.strMeal, 45, 98));
+
   return (
     <Card
       className="overflow-hidden cursor-pointer group"
@@ -52,7 +66,7 @@ const RecipeCard = ({
 
         <div className="absolute bottom-3 left-3 flex items-center gap-1">
           <Star className="w-4 h-4 fill-primary text-primary" />
-          <span className="text-sm font-semibold text-foreground">{rating}</span>
+          <span className="text-sm font-semibold text-foreground">{finalRating}</span>
         </div>
       </div>
 
@@ -77,7 +91,7 @@ const RecipeCard = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Health {healthScore}%</span>
+            <span className="text-sm font-medium">Health {finalHealthScore}%</span>
           </div>
           <div className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">Popularity</div>
         </div>
