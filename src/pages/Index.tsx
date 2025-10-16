@@ -555,15 +555,15 @@ const Index = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
           </div>
 
-          <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 animate-fade-in">
+          <div className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6 animate-fade-in">
             <div className="flex items-center justify-center gap-2 mb-4">
               <ChefHat className="w-12 h-12 text-primary animate-glow" />
-              <h1 className="text-6xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 Foodyfy
               </h1>
             </div>
             
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover delicious recipes tailored to your taste, health goals, and ingredients.
               Powered by smart AI recommendations.
             </p>
@@ -579,7 +579,7 @@ const Index = () => {
       )}
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-12">
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Stats Bar - Only show when not logged in */}
         {!user && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -612,7 +612,7 @@ const Index = () => {
 
         {/* Recipes Section */}
         <section>
-          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-primary" />
             Featured Recipes
           </h2>

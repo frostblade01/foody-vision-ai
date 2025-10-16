@@ -187,9 +187,9 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-border/50">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-border/50 p-4 sm:p-6">
         <DialogHeader>
-          <div className="relative h-64 -mx-6 -mt-6 mb-4 overflow-hidden rounded-t-lg">
+          <div className="relative h-48 sm:h-64 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-4 overflow-hidden rounded-t-lg">
             <img
               src={recipe.strMealThumb}
               alt={recipe.strMeal}
@@ -197,7 +197,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             
-            <div className="absolute bottom-4 left-6 right-6">
+            <div className="absolute bottom-4 left-4 sm:left-6 right-4 sm:right-6">
               <div className="flex gap-2 mb-3">
                 {recipe.strCategory && (
                   <Badge className="bg-primary/90 backdrop-blur-sm">
@@ -213,9 +213,9 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             </div>
           </div>
 
-          <DialogTitle className="text-3xl font-bold">{recipe.strMeal}</DialogTitle>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">{recipe.strMeal}</DialogTitle>
           
-          <div className="flex items-center gap-6 py-4 text-sm flex-wrap">
+          <div className="flex items-center gap-3 sm:gap-6 py-4 text-xs sm:text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 fill-primary text-primary" />
               <span className="font-semibold">{rating}</span>
