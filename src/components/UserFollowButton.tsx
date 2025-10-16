@@ -38,46 +38,13 @@ const UserFollowButton = ({
   };
 
   const checkFollowStatus = async () => {
-    if (!user || user.id === targetUserId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("user_follows")
-        .select("id")
-        .eq("follower_id", user.id)
-        .eq("following_id", targetUserId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setIsFollowing(!!data);
-    } catch (error) {
-      console.error("Error checking follow status:", error);
-    }
+    // Commented out until user_follows table is created
+    return;
   };
 
   const fetchCounts = async () => {
-    try {
-      // Get followers count
-      const { count: followers, error: followersError } = await supabase
-        .from("user_follows")
-        .select("*", { count: "exact", head: true })
-        .eq("following_id", targetUserId);
-
-      if (followersError) throw followersError;
-
-      // Get following count
-      const { count: following, error: followingError } = await supabase
-        .from("user_follows")
-        .select("*", { count: "exact", head: true })
-        .eq("follower_id", targetUserId);
-
-      if (followingError) throw followingError;
-
-      setFollowersCount(followers || 0);
-      setFollowingCount(following || 0);
-    } catch (error) {
-      console.error("Error fetching counts:", error);
-    }
+    // Commented out until user_follows table is created
+    return;
   };
 
   const handleFollow = async () => {
@@ -99,35 +66,18 @@ const UserFollowButton = ({
       return;
     }
 
+    toast({
+      title: "Feature Coming Soon",
+      description: "Follow functionality will be available soon!",
+    });
+    return;
+    /* Commented out until user_follows table is created
     setLoading(true);
     try {
       if (isFollowing) {
-        // Unfollow
-        const { error } = await supabase
-          .from("user_follows")
-          .delete()
-          .eq("follower_id", user.id)
-          .eq("following_id", targetUserId);
-
-        if (error) throw error;
-
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
-        
-        toast({
-          title: "Unfollowed",
-          description: "You are no longer following this user",
-        });
       } else {
-        // Follow
-        const { error } = await supabase
-          .from("user_follows")
-          .insert({
-            follower_id: user.id,
-            following_id: targetUserId
-          });
-
-        if (error) throw error;
 
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);

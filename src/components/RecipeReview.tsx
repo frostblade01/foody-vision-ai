@@ -51,17 +51,26 @@ const RecipeReview = ({ recipeId, recipeType }: RecipeReviewProps) => {
       if (!supabaseEnabled) return;
       const { data, error } = await supabase
         .from("recipe_reviews")
-        .select(`
-          *,
-          user:profiles!recipe_reviews_user_id_fkey(username, avatar_url)
-        `)
+        .select("*")
         .eq("recipe_id", recipeId)
         .eq("recipe_type", recipeType)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setReviews(data || []);
+      // Fetch user profiles separately
+      const userIds = data?.map(review => review.user_id) || [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      const reviewsWithUsers = data?.map(review => ({
+        ...review,
+        user: profiles?.find(p => p.id === review.user_id) || { username: "Anonymous", avatar_url: "" }
+      })) || [];
+
+      setReviews(reviewsWithUsers as Review[]);
 
       // Calculate average rating
       if (data && data.length > 0) {
@@ -72,7 +81,7 @@ const RecipeReview = ({ recipeId, recipeType }: RecipeReviewProps) => {
 
       // Find user's review if logged in
       if (user) {
-        const userReviewData = data?.find(review => review.user_id === user.id);
+        const userReviewData = reviewsWithUsers.find(review => review.user_id === user.id);
         if (userReviewData) {
           setUserReview(userReviewData);
           setNewRating(userReviewData.rating);

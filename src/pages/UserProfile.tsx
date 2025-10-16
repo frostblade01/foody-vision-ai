@@ -39,11 +39,8 @@ const UserProfile = () => {
       // Load reels authored by this user (match by creator_name for demo, creator_id when available)
       const name = verified?.username || profile?.username;
       if (!name) return;
-      const { data } = await supabase
-        .from('recipe_reels')
-        .select('*')
-        .ilike('creator_name', name);
-      setReels(data || []);
+      // Commented out until recipe_reels table is created
+      setReels([]);
     })();
   }, [profile?.username, verified?.username]);
 

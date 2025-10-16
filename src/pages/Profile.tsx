@@ -125,24 +125,9 @@ const Profile = () => {
       );
       setRecipeNames(names);
 
-      // Load followers
-      const { data: followersData } = await supabase
-        .from("user_follows")
-        .select(`
-          *,
-          follower:profiles!user_follows_follower_id_fkey(username, avatar_url)
-        `)
-        .eq("following_id", session.user.id);
-
-      setFollowers(followersData || []);
-
-      // Load following
-      const { data: followingData } = await supabase
-        .from("user_follows")
-        .select(`
-          *,
-          following:profiles!user_follows_following_id_fkey(username, avatar_url)
-        `)
+      // Load followers (commented out until user_follows table is created)
+      setFollowers([]);
+      // Load following (commented out until user_follows table is created)
         .eq("follower_id", session.user.id);
 
       setFollowing(followingData || []);

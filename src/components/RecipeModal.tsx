@@ -37,7 +37,8 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
   // Derive ingredients list BEFORE conditional rendering
   const ingredients = useMemo(() => {
     if (!recipe) return [];
-    return recipe.isUserRecipe 
+    const isUserRecipe = (recipe as any).isUserRecipe || (recipe as any).ingredients;
+    return isUserRecipe 
       ? (recipe as any).ingredients?.map((ing: any) => `${ing.amount} ${ing.unit} ${ing.name}`) || []
       : Array.from({ length: 20 }, (_, i) => {
           const ingredient = (recipe as any)[`strIngredient${i + 1}`];
@@ -70,7 +71,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
         .select("id")
         .eq("user_id", user.id)
         .eq("recipe_id", recipe.idMeal)
-        .eq("recipe_type", (recipe as any).isUserRecipe ? "user" : "api")
+        .eq("recipe_type", ((recipe as any).isUserRecipe || (recipe as any).ingredients) ? "user" : "api")
         .maybeSingle();
 
       setIsLiked(!!likeData);
@@ -80,7 +81,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
         .from("recipe_likes")
         .select("*", { count: "exact", head: true })
         .eq("recipe_id", recipe.idMeal)
-        .eq("recipe_type", (recipe as any).isUserRecipe ? "user" : "api");
+        .eq("recipe_type", ((recipe as any).isUserRecipe || (recipe as any).ingredients) ? "user" : "api");
 
       setLikeCount(count || 0);
     } catch (error) {
@@ -107,7 +108,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           .delete()
           .eq("user_id", user.id)
           .eq("recipe_id", recipe!.idMeal)
-          .eq("recipe_type", (recipe! as any).isUserRecipe ? "user" : "api");
+          .eq("recipe_type", ((recipe! as any).isUserRecipe || (recipe! as any).ingredients) ? "user" : "api");
 
         if (!error) {
           setIsLiked(false);
@@ -120,7 +121,7 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
           .insert({
             user_id: user.id,
             recipe_id: recipe!.idMeal,
-            recipe_type: (recipe! as any).isUserRecipe ? "user" : "api"
+            recipe_type: ((recipe! as any).isUserRecipe || (recipe! as any).ingredients) ? "user" : "api"
           });
 
         if (!error) {
@@ -345,14 +346,14 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             <TabsContent value="comments">
               <RecipeComments 
                 recipeId={recipe.idMeal} 
-                recipeType={(recipe as any).isUserRecipe ? "user" : "api"} 
+                recipeType={((recipe as any).isUserRecipe || (recipe as any).ingredients) ? "user" : "api"} 
               />
             </TabsContent>
 
             <TabsContent value="reviews">
               <RecipeReview 
                 recipeId={recipe.idMeal} 
-                recipeType={(recipe as any).isUserRecipe ? "user" : "api"} 
+                recipeType={((recipe as any).isUserRecipe || (recipe as any).ingredients) ? "user" : "api"} 
               />
             </TabsContent>
 
