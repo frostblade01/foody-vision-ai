@@ -157,19 +157,21 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
 
   if (!recipe) return null;
 
-  // Generate consistent random values based on recipe ID
-  const generateConsistentValue = (id: string, min: number, max: number) => {
+  // Generate consistent random values based on recipe ID and name
+  const generateConsistentValue = (seed: string, min: number, max: number) => {
     let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) - hash) + id.charCodeAt(i);
-      hash = hash & hash;
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
     }
-    const normalized = Math.abs(hash % 1000) / 1000;
-    return min + normalized * (max - min);
+    // Make hash positive and normalize to 0-1
+    const normalized = Math.abs(hash) / 2147483647;
+    return min + (normalized * (max - min));
   };
 
-  const rating = (recipe as any).rating ?? parseFloat(generateConsistentValue(recipe.idMeal, 3.5, 5.0).toFixed(1));
-  const healthScore = (recipe as any).healthScore ?? Math.round(generateConsistentValue(recipe.idMeal + recipe.strMeal, 45, 98));
+  const rating = (recipe as any).rating ?? parseFloat(generateConsistentValue(`rating_${recipe.idMeal}_${recipe.strMeal}`, 3.5, 5.0).toFixed(1));
+  const healthScore = (recipe as any).healthScore ?? Math.round(generateConsistentValue(`health_${recipe.idMeal}_${recipe.strMeal}`, 45, 98));
 
   // Get nutrition data
   const nutrition = {
