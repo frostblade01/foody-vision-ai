@@ -11,6 +11,7 @@ const UserProfile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reels, setReels] = useState<any[]>([]);
   const verified = useMemo(() => verifiedUsers.find(u => u.username.toLowerCase() === String(username).toLowerCase()), [username]);
 
   useEffect(() => {
@@ -32,6 +33,19 @@ const UserProfile = () => {
       setLoading(false);
     })();
   }, [username]);
+
+  useEffect(() => {
+    (async () => {
+      // Load reels authored by this user (match by creator_name for demo, creator_id when available)
+      const name = verified?.username || profile?.username;
+      if (!name) return;
+      const { data } = await supabase
+        .from('recipe_reels')
+        .select('*')
+        .ilike('creator_name', name);
+      setReels(data || []);
+    })();
+  }, [profile?.username, verified?.username]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -103,7 +117,23 @@ const UserProfile = () => {
                   <CardTitle className="flex items-center gap-2"><Heart className="w-5 h-5" /> Reels</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  No reels available.
+                  {reels.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No reels available.</div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {reels.map((reel) => (
+                        <div key={reel.id} className="border rounded-lg overflow-hidden">
+                          <div className="aspect-[16/9] bg-muted">
+                            <img src={reel.thumbnail_url} alt={reel.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="p-3">
+                            <div className="font-semibold text-sm line-clamp-2">{reel.title}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{reel.view_count} views</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

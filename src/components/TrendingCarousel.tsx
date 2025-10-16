@@ -3,6 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Star, Heart, Eye } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -194,70 +199,64 @@ const TrendingCarousel = ({ onRecipeClick }: TrendingCarouselProps) => {
         )}
       </div>
 
-      <div className="relative overflow-hidden">
-        <div 
-          className="flex gap-4 transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * 272}px)` }}
-        >
+      <Carousel opts={{ loop: true, align: "start" }}>
+        <CarouselContent className="-ml-2">
           {recipes.map((recipe) => (
-            <Card
-              key={recipe.id}
-              className="flex-shrink-0 w-64 cursor-pointer group hover:scale-105 transition-transform duration-300"
-              onClick={() => handleRecipeClick(recipe)}
-            >
-              <div className="relative h-32 overflow-hidden">
-                <img
-                  src={recipe.image_url}
-                  alt={recipe.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-primary/90 backdrop-blur-sm border-none text-xs">
-                    {recipe.category}
-                  </Badge>
-                </div>
+            <CarouselItem key={recipe.id} className="pl-2 basis-auto">
+              <Card
+                className="w-64 cursor-pointer group hover:scale-105 transition-transform duration-300"
+                onClick={() => handleRecipeClick(recipe)}
+              >
+                <div className="relative h-32 overflow-hidden">
+                  <img
+                    src={recipe.image_url}
+                    alt={recipe.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                <div className="absolute bottom-2 left-2 flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-primary text-primary" />
-                  <span className="text-xs font-semibold text-white">
-                    {recipe.rating || 4.5}
-                  </span>
-                </div>
-              </div>
-
-              <CardContent className="p-3">
-                <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                  {recipe.title}
-                </h3>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-3 h-3" />
-                      <span>{recipe.like_count}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{recipe.view_count}</span>
-                    </div>
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-primary/90 backdrop-blur-sm border-none text-xs">
+                      {recipe.category}
+                    </Badge>
                   </div>
-                  {recipe.prep_time && (
-                    <span>{recipe.prep_time} min</span>
+
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-primary text-primary" />
+                    <span className="text-xs font-semibold text-white">
+                      {recipe.rating || 4.5}
+                    </span>
+                  </div>
+                </div>
+
+                <CardContent className="p-3">
+                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    {recipe.title}
+                  </h3>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" />
+                        <span>{recipe.like_count}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        <span>{recipe.view_count}</span>
+                      </div>
+                    </div>
+                    {recipe.prep_time && <span>{recipe.prep_time} min</span>}
+                  </div>
+
+                  {recipe.calories && (
+                    <div className="mt-2 text-xs text-muted-foreground">{recipe.calories} cal</div>
                   )}
-                </div>
-
-                {recipe.calories && (
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    {recipe.calories} cal
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </CarouselItem>
           ))}
-        </div>
-      </div>
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 };

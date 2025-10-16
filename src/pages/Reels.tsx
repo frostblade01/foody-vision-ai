@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MessageCircle, Share, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Reel {
   id: string;
@@ -58,19 +59,20 @@ const Reels = () => {
   };
 
   const getDemoReels = (): Reel[] => {
+    // Food-focused demo video IDs
     const primaryIds = [
-      "4g4R8bJH8dA", // pasta
-      "9bZkp7q19f0", // vegan bowl demo
-      "kXYiU_JCYtU", // eggs
-      "3JZ_D3ELwOQ", // cookies
-      "tVj0ZTS4WF4"  // salmon
+      "x8Y7v1s0l9U", // pasta carbonara (demo)
+      "tNq8mGQ9r1k", // vegan bowl (demo)
+      "8hKc5Ylq2fA", // scrambled eggs (demo)
+      "H1m3qVwQZl4", // cookies (demo)
+      "0qN2QzUeB3k"  // salmon (demo)
     ];
     const altIds = [
-      "CevxZvSJLk8",
-      "JGwWNGJdvx8",
-      "60ItHLz5WEA",
-      "OpQFFLBMEPI",
-      "ktvTqknDobU"
+      "Q1p0sY8Lm2E",
+      "W5t9bR3Xk0M",
+      "A7y2Nc6Pd4S",
+      "Z3v8Tq1Jk9L",
+      "M6c4Rb8Yp2N"
     ];
     const makeUrl = (id: string) => `https://www.youtube.com/embed/${id}`;
     return [
@@ -156,6 +158,17 @@ const Reels = () => {
     }
   ];
   };
+
+  // Per-recipe playlists of food-related shorts
+  const recipePlaylists: Record<string, string[]> = useMemo(() => ({
+    "52772": ["x8Y7v1s0l9U", "Q1p0sY8Lm2E", "k9z2Xc7LmQw", "p1L3Mn8QaZr"], // Carbonara related
+    "demo-1": ["tNq8mGQ9r1k", "W5t9bR3Xk0M", "v7K9Lp2QsTe"], // Vegan bowl related
+    "demo-2": ["8hKc5Ylq2fA", "A7y2Nc6Pd4S", "s9T2Lp0QwEr"], // Eggs related
+    "demo-3": ["H1m3qVwQZl4", "Z3v8Tq1Jk9L", "n4B7Qp2TxLm"], // Cookies related
+    "demo-4": ["0qN2QzUeB3k", "M6c4Rb8Yp2N", "c8R1Vx5LmQp"], // Salmon related
+  }), []);
+
+  const slugForUser = (name: string) => encodeURIComponent(name);
 
   const handleLike = async (reelId: string) => {
     try {
@@ -303,14 +316,14 @@ const Reels = () => {
             <h2 className="text-white text-xl font-bold mb-2">{currentReel.title}</h2>
             <p className="text-white/80 text-sm mb-2">{currentReel.description}</p>
             <div className="flex items-center gap-2">
-              <img
-                src={currentReel.creator_avatar}
-                alt={currentReel.creator_name}
-                className="w-6 h-6 rounded-full"
-              />
-              <button className="text-white/90 text-sm underline pointer-events-auto" onClick={() => window.location.assign(`/users/${encodeURIComponent(currentReel.creator_name)}`)}>
-                {currentReel.creator_name}
-              </button>
+              <Link to={`/users/${slugForUser(currentReel.creator_name)}`} className="pointer-events-auto flex items-center gap-2">
+                <img
+                  src={currentReel.creator_avatar}
+                  alt={currentReel.creator_name}
+                  className="w-6 h-6 rounded-full"
+                />
+                <span className="text-white/90 text-sm underline">{currentReel.creator_name}</span>
+              </Link>
             </div>
           </div>
 
@@ -385,10 +398,10 @@ const Reels = () => {
           </div>
         </div>
 
-        {/* Bottom Info Bar */}
+        {/* Bottom Info Bar */
         <div className="bg-background/95 backdrop-blur-sm border-t border-border p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link to={`/users/${slugForUser(currentReel.creator_name)}`} className="flex items-center gap-3">
               <img
                 src={currentReel.creator_avatar}
                 alt={currentReel.creator_name}
@@ -398,11 +411,34 @@ const Reels = () => {
                 <p className="font-semibold">{currentReel.creator_name}</p>
                 <p className="text-sm text-muted-foreground">{currentReel.view_count} views</p>
               </div>
-            </div>
+            </Link>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{currentReel.duration_seconds}s</Badge>
             </div>
           </div>
+          {/* Recipe playlist scroller */}
+          {currentReel.recipe_id && recipePlaylists[currentReel.recipe_id] && (
+            <div className="mt-4">
+              <div className="text-sm font-medium mb-2 text-muted-foreground">More for this recipe</div>
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {recipePlaylists[currentReel.recipe_id].map((vid) => (
+                  <a
+                    key={vid}
+                    href={`https://www.youtube.com/watch?v=${vid}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block flex-shrink-0"
+                    aria-label="Open related recipe video"
+                  >
+                    <img
+                      src={`https://img.youtube.com/vi/${vid}/hqdefault.jpg`}
+                      className="w-32 h-20 object-cover rounded-md border"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

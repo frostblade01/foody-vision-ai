@@ -315,6 +315,33 @@ const AIKitchen = () => {
                       </div>
                     ))}
                   </div>
+                ) : result.days ? (
+                  <div className="space-y-4">
+                    {result.days.map((day: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <h4 className="font-semibold mb-3">Day {day.day}</h4>
+                        <div className="space-y-2">
+                          {day.meals?.map((m: any, idx: number) => (
+                            <div key={idx} className="pl-3 border-l-2 border-primary/30">
+                              <span className="text-sm font-medium">{m.name}</span>
+                              {m.calories && (
+                                <span className="text-sm text-muted-foreground"> — {m.calories} cal</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : result.substitutes ? (
+                  <div className="space-y-3">
+                    {result.substitutes.map((s: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg border bg-card/50">
+                        <div className="text-sm"><span className="font-medium">{s.original}</span> → {s.substitute}</div>
+                        {s.benefit && <div className="text-xs text-muted-foreground mt-1">{s.benefit}</div>}
+                      </div>
+                    ))}
+                  </div>
                 ) : result.meals ? (
                   <div className="space-y-4">
                     {Object.entries(result.meals).map(([day, meals]: [string, any], i) => (
