@@ -349,21 +349,57 @@ const RecipeModal = ({ recipe, isOpen, onClose, onSaveRecipe }: RecipeModalProps
             </TabsContent>
 
             <TabsContent value="reels" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1,2,3,4].map((i) => (
-                  <div key={i} className="border rounded-lg overflow-hidden">
-                    <div className="aspect-video bg-black">
-                      <iframe
-                        src={`https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1`}
-                        className="w-full h-full"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
+              <div className="text-sm text-muted-foreground mb-4">
+                Watch cooking videos and tutorials for this recipe
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {(() => {
+                  // Map recipe names to specific YouTube Shorts IDs
+                  const recipeShorts: Record<string, string[]> = {
+                    "carbonara": ["zMUNG9KXmrE"],
+                    "pasta": ["zMUNG9KXmrE"],
+                    "buddha bowl": ["Oqf3wxJHhUo"],
+                    "vegan": ["Oqf3wxJHhUo"],
+                    "scrambled eggs": ["oICDPEXS168"],
+                    "eggs": ["oICDPEXS168"],
+                    "chocolate cookies": ["NOjLrN_QktM"],
+                    "cookies": ["NOjLrN_QktM"],
+                    "salmon": ["scfDraXaqb8"],
+                    "grilled salmon": ["scfDraXaqb8"],
+                  };
+                  
+                  const recipeName = recipe.strMeal.toLowerCase();
+                  let shortIds: string[] = [];
+                  
+                  // Find matching shorts based on recipe name
+                  for (const [key, ids] of Object.entries(recipeShorts)) {
+                    if (recipeName.includes(key)) {
+                      shortIds = ids;
+                      break;
+                    }
+                  }
+                  
+                  // If no specific match, show a default reel
+                  if (shortIds.length === 0) {
+                    shortIds = ["zMUNG9KXmrE"];
+                  }
+                  
+                  return shortIds.map((id, i) => (
+                    <div key={i} className="border rounded-lg overflow-hidden">
+                      <div className="aspect-video bg-black">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${id}?autoplay=0&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                          className="w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="p-3 text-sm text-muted-foreground">Recipe tutorial from YouTube Shorts</div>
                     </div>
-                    <div className="p-3 text-sm text-muted-foreground">Uploaded by <span className="font-medium">Chef Demo</span></div>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </TabsContent>
 

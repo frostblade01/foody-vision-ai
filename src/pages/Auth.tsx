@@ -60,7 +60,8 @@ const Auth = () => {
         title: "Success!",
         description: "Account created successfully",
       });
-      navigate("/");
+      // Redirect to onboarding for new users
+      navigate("/onboarding");
     }
   };
 

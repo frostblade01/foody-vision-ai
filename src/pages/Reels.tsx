@@ -71,7 +71,7 @@ const Reels = () => {
       "K3v5z9LmT2Y",
       "M1r8Xe9qP0L"
     ];
-    const makeUrl = (id: string) => `https://www.youtube.com/embed/${id}?autoplay=0&controls=1&rel=0`;
+    const makeUrl = (id: string) => `https://www.youtube.com/embed/${id}?autoplay=0&controls=1&rel=0&modestbranding=1&playsinline=1`;
     return [
     {
       id: "demo-1",
@@ -309,8 +309,9 @@ const Reels = () => {
               src={(flipAlt && (currentReel as any).alt_video_url) ? (currentReel as any).alt_video_url : currentReel.video_url}
               className="w-full h-full"
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
+              loading="lazy"
             />
           </div>
 
