@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-food.jpg";
 import { User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -18,6 +19,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Generate consistent random values using hash function
   const generateHashValue = (seed: string, min: number, max: number) => {
@@ -569,7 +571,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center pt-4">
-              <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => window.location.assign('/auth')}>
+              <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => navigate('/auth')}>
                 <ChefHat className="w-5 h-5 mr-2" />
                 Start Cooking
               </Button>
