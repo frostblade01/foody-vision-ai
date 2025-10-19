@@ -571,7 +571,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center pt-4">
-              <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => navigate('/auth')}>
+              <Button variant="hero" size="lg" className="text-lg px-8" onClick={() => navigate('/auth?tab=signup')}>
                 <ChefHat className="w-5 h-5 mr-2" />
                 Start Cooking
               </Button>
