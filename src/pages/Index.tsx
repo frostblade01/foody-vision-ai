@@ -560,8 +560,8 @@ const Index = () => {
           <div className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6 animate-fade-in">
             <div className="flex items-center justify-center gap-2 mb-4">
               <ChefHat className="w-12 h-12 text-primary animate-glow" />
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                Foodyfy
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">
+                <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Food</span><span className="text-primary">yfy</span>
               </h1>
             </div>
             
